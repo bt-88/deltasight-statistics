@@ -6,7 +6,7 @@ namespace DeltaSight.Statistics;
 /// <summary>
 /// Tracks the statistics for a sample of values
 /// <remarks>
-/// Allows for modification of the sample via <see cref="Add(double,long)"/> and <see cref="Remove"/>.
+/// Allows for modification of the sample via <see cref="Add(double,long)"/> and <see cref="Remove(double, long)"/>.
 /// The object is immutable and serializable.
 /// </remarks>
 /// </summary>
@@ -146,14 +146,25 @@ public record SampleStatistics
         if (n == 1L) return FromSingleValue(value, count);
         if (n == 0L) return Empty;
         
-        var d = value - Mean.Value;
-        var s = d / n;
-        var t = d * s * (n - 1L);
+        var newMean = (Sum - value * count) / n;
 
-        var m2 = M2() - t;
-        var mean = Mean.Value - d / n * count;
+        var t1 = (Count - 1) * Variance.Value - (value - Mean.Value) * (value - newMean) * count;
 
-        return FromM2(n, mean, m2);
+        //double newVariance;
+        double newPopVariance;
+
+        if (t1 < 0)
+        {
+            //newVariance = 0d;
+            newPopVariance = 0d;
+        }
+        else
+        {
+            //newVariance = t1 / (n - 1);
+            newPopVariance = t1 / n;    
+        }
+
+        return FromM2(n, newMean, newPopVariance * n);
     }
 
     /// <summary>
@@ -176,6 +187,21 @@ public record SampleStatistics
 
         return FromM2(n, mean, m2);
     }
+    
+    /// <summary>
+    /// Creates a new <see cref="SampleStatistics"/> with the removal of multiple <paramref name="values"/>
+    /// </summary>
+    /// <param name="values">Values to remove from the sample</param>
+    /// <returns>A new <see cref="SampleStatistics"/></returns>
+    public SampleStatistics Remove(IEnumerable<double> values) => RemoveMultiple(values);
+
+    /// <summary>
+    /// Creates a new <see cref="SampleStatistics"/> with the removal of multiple <paramref name="values"/>
+    /// </summary>
+    /// <param name="values">Values to remove from the sample</param>
+    /// <returns>A new <see cref="SampleStatistics"/></returns>
+    public SampleStatistics Remove(params double[] values) => RemoveMultiple(values);
+
     
     /// <summary>
     /// Creates a new <see cref="SampleStatistics"/> with the addition of multiple <paramref name="values"/>
@@ -229,6 +255,11 @@ public record SampleStatistics
     private SampleStatistics AddMultiple(IEnumerable<double> values)
     {
         return values.Aggregate(this, (current, value) => current.Add(value));
+    }
+
+    private SampleStatistics RemoveMultiple(IEnumerable<double> values)
+    {
+        return values.Aggregate(this, (current, value) => current.Remove(value));
     }
     
     #endregion

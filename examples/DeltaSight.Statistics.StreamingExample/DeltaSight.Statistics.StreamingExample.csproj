@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\src\DeltaSight.Statistics\DeltaSight.Statistics.csproj" />
+      <ProjectReference Include="..\..\src\DeltaSight.Statistics\DeltaSight.Statistics.csproj" />
     </ItemGroup>
 
 </Project>

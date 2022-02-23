@@ -69,6 +69,38 @@ public class SampleStatisticsTests
     }
 
     [Fact]
+    public void AddAndRemove_ShouldHaveZeroVariance()
+    {
+        var stats = SampleStatistics
+            .Empty
+            .Add(2, 2, 4)
+            .Remove(4);
+        
+        stats.IsEmpty().ShouldBeFalse();
+        stats.Mean.ShouldBe(2);
+        stats.Variance!.Value.ShouldBe(0d);
+        stats.StandardDeviation!.Value.ShouldBe(0d);
+    }
+
+    [Fact]
+    public void AddAndRemove_ShouldNotHaveZeroVariance()
+    {
+        var stats = SampleStatistics
+            .Empty
+            .Add(3, 3, 4, 1);
+        
+        stats.IsEmpty().ShouldBeFalse();
+        stats.Variance!.Value.ShouldBe(1.58, 1e-2);
+        stats.StandardDeviation!.Value.ShouldBe(1.26, 1e-2);
+
+        stats = stats.Remove(1);
+
+        stats.IsEmpty().ShouldBeFalse();
+        stats.Variance!.Value.ShouldBe(.33, 1e-2);
+        stats.StandardDeviation!.Value.ShouldBe(0.58, 1e-2);
+    }
+
+    [Fact]
     public void Equality()
     {
         SampleStatistics.Empty.Add(1, 2, 3)

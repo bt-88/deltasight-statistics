@@ -10,7 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statistics.Tests", "tests\D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{EAE85BB3-F523-4C0B-908F-AB57175907FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamingExample", "StreamingExample\StreamingExample.csproj", "{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaSight.Statistics.StreamingExample", "examples\DeltaSight.Statistics.StreamingExample\DeltaSight.Statistics.StreamingExample.csproj", "{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
