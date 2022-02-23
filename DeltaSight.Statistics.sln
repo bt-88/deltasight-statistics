@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A75BF6F2-1961-4A76-92C2-2C8600E22E3C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaSight.Statistics", "src\DeltaSight.Statistics\DeltaSight.Statistics.csproj", "{58E23229-5E29-478A-9BF7-D3E7B98679BA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DF2006C4-6BB6-4D24-8594-F60807C50CC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statistics.Tests", "tests\DeltaSight.Statistics.Tests\DeltaSight.Statistics.Tests.csproj", "{2B87DAFB-CA2F-4898-A989-139211F46616}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{EAE85BB3-F523-4C0B-908F-AB57175907FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamingExample", "StreamingExample\StreamingExample.csproj", "{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{58E23229-5E29-478A-9BF7-D3E7B98679BA} = {A75BF6F2-1961-4A76-92C2-2C8600E22E3C}
+		{2B87DAFB-CA2F-4898-A989-139211F46616} = {DF2006C4-6BB6-4D24-8594-F60807C50CC5}
+		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288} = {EAE85BB3-F523-4C0B-908F-AB57175907FD}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{58E23229-5E29-478A-9BF7-D3E7B98679BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58E23229-5E29-478A-9BF7-D3E7B98679BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58E23229-5E29-478A-9BF7-D3E7B98679BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58E23229-5E29-478A-9BF7-D3E7B98679BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B87DAFB-CA2F-4898-A989-139211F46616}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B87DAFB-CA2F-4898-A989-139211F46616}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B87DAFB-CA2F-4898-A989-139211F46616}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B87DAFB-CA2F-4898-A989-139211F46616}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

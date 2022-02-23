@@ -1,0 +1,5 @@
+/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/obj/Debug/netstandard2.1/DeltaSight.Statistics.csproj.AssemblyReference.cache
+/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/obj/Debug/netstandard2.1/DeltaSight.Statistics.GeneratedMSBuildEditorConfig.editorconfig
+/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/obj/Debug/netstandard2.1/DeltaSight.Statistics.AssemblyInfoInputs.cache
+/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/obj/Debug/netstandard2.1/DeltaSight.Statistics.AssemblyInfo.cs
+/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/obj/Debug/netstandard2.1/DeltaSight.Statistics.csproj.CoreCompileInputs.cache

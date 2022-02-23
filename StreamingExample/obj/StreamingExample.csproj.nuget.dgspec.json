@@ -1,0 +1,126 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/bas/RiderProjects/StatisticsFiddle/StreamingExample/StreamingExample.csproj": {}
+  },
+  "projects": {
+    "/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/DeltaSight.Statistics.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/DeltaSight.Statistics.csproj",
+        "projectName": "DeltaSight.Statistics",
+        "projectPath": "/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/DeltaSight.Statistics.csproj",
+        "packagesPath": "/Users/bas/.nuget/packages/",
+        "outputPath": "/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/bas/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/6.0.100/RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/bas/RiderProjects/StatisticsFiddle/StreamingExample/StreamingExample.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/bas/RiderProjects/StatisticsFiddle/StreamingExample/StreamingExample.csproj",
+        "projectName": "StreamingExample",
+        "projectPath": "/Users/bas/RiderProjects/StatisticsFiddle/StreamingExample/StreamingExample.csproj",
+        "packagesPath": "/Users/bas/.nuget/packages/",
+        "outputPath": "/Users/bas/RiderProjects/StatisticsFiddle/StreamingExample/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/bas/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net6.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net6.0": {
+            "targetAlias": "net6.0",
+            "projectReferences": {
+              "/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/DeltaSight.Statistics.csproj": {
+                "projectPath": "/Users/bas/RiderProjects/StatisticsFiddle/src/DeltaSight.Statistics/DeltaSight.Statistics.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/6.0.100/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
