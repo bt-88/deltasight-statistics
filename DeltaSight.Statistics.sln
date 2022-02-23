@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{EA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaSight.Statistics.StreamingExample", "examples\DeltaSight.Statistics.StreamingExample\DeltaSight.Statistics.StreamingExample.csproj", "{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{3873BDE5-AE9C-425B-9714-9701D6B2E460}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaSight.Statistics.Benchmarks", "benchmarks\DeltaSight.Statistics.Benchmarks\DeltaSight.Statistics.Benchmarks.csproj", "{93EF086E-16D4-4B54-9295-CBDD7C41F421}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,7 @@ Global
 		{58E23229-5E29-478A-9BF7-D3E7B98679BA} = {A75BF6F2-1961-4A76-92C2-2C8600E22E3C}
 		{2B87DAFB-CA2F-4898-A989-139211F46616} = {DF2006C4-6BB6-4D24-8594-F60807C50CC5}
 		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288} = {EAE85BB3-F523-4C0B-908F-AB57175907FD}
+		{93EF086E-16D4-4B54-9295-CBDD7C41F421} = {3873BDE5-AE9C-425B-9714-9701D6B2E460}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{58E23229-5E29-478A-9BF7-D3E7B98679BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -35,5 +40,9 @@ Global
 		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C39FCC41-2DB3-4BE6-8B5F-EC2853EB7288}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93EF086E-16D4-4B54-9295-CBDD7C41F421}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93EF086E-16D4-4B54-9295-CBDD7C41F421}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93EF086E-16D4-4B54-9295-CBDD7C41F421}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93EF086E-16D4-4B54-9295-CBDD7C41F421}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

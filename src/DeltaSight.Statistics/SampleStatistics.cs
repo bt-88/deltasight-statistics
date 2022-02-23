@@ -1,5 +1,8 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DeltaSight.Statistics;
 
@@ -90,6 +93,7 @@ public record SampleStatistics
     /// <param name="count">Number of times to add the value</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
     /// <exception cref="ArgumentOutOfRangeException">If count is lower than zero</exception>
+    [Pure]
     public SampleStatistics Add(double value, long count = 1L)
     {
         if (count < 1L) throw new ArgumentOutOfRangeException(nameof(count));
@@ -112,6 +116,7 @@ public record SampleStatistics
     /// </summary>
     /// <param name="value">Value</param>
     /// <param name="count">Number of times the value is in the sample</param>
+    [Pure]
     public static SampleStatistics FromSingleValue(double value, long count = 1)
     {
         return new SampleStatistics
@@ -134,6 +139,7 @@ public record SampleStatistics
     /// <returns>A new <see cref="SampleStatistics"/></returns>
     /// <exception cref="ArgumentOutOfRangeException">If count is lower than zero</exception>
     /// <exception cref="InvalidOperationException">If the sample is empty or if the count to be removed is greater than the sample count</exception>
+    [Pure]
     public SampleStatistics Remove(double value, long count = 1L)
     {
         if (count < 1L) throw new ArgumentOutOfRangeException(nameof(count));
@@ -172,6 +178,7 @@ public record SampleStatistics
     /// </summary>
     /// <param name="other">Sample statistics to add</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
+    [Pure]
     public SampleStatistics Add(SampleStatistics other)
     {
         if (IsEmpty() && other.IsEmpty()) return Empty;
@@ -193,6 +200,7 @@ public record SampleStatistics
     /// </summary>
     /// <param name="values">Values to remove from the sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
+    [Pure]
     public SampleStatistics Remove(IEnumerable<double> values) => RemoveMultiple(values);
 
     /// <summary>
@@ -200,6 +208,7 @@ public record SampleStatistics
     /// </summary>
     /// <param name="values">Values to remove from the sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
+    [Pure]
     public SampleStatistics Remove(params double[] values) => RemoveMultiple(values);
 
     
@@ -208,6 +217,7 @@ public record SampleStatistics
     /// </summary>
     /// <param name="values">Values to add to the sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
+    [Pure]
     public SampleStatistics Add(IEnumerable<double> values) => AddMultiple(values);
 
     /// <summary>
@@ -215,6 +225,7 @@ public record SampleStatistics
     /// </summary>
     /// <param name="values">Values to add to the sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
+    [Pure]
     public SampleStatistics Add(params double[] values) => AddMultiple(values);
 
     /// <summary>
@@ -222,6 +233,7 @@ public record SampleStatistics
     /// </summary>
     /// <param name="multiplier">Multiplier</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
+    [Pure]
     public SampleStatistics Multiply(double multiplier)
     {
         if (IsEmpty()) return Empty;
