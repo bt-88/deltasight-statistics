@@ -1,6 +1,8 @@
 # DeltaSight.Statistics
 Efficient tracking of the statistical descriptors (Mean, St. Deviation, Variance) of a numeric sample.
-Manipulation of the descriptors is done *in line* with help of Welford's single pass algoirithm for updating the *variance* (and *standard deviation*).
+Manipulation of the descriptors is done *in one pass* with help of Welford's algoirithm for updating the *variance* (and *standard deviation*).
+
+Useful if you need to update the *running* statistics of a very large sample in *one pass*. For instance when processing streaming data.
 
 ## Code examples
 ### SampleStatistics
