@@ -5,19 +5,32 @@ Manipulation of the descriptors is done *in line* with help of Welford's single 
 ## Code examples
 ### SampleStatistics
 ```csharp
-var stats = SampleStatistics.Empty // Returns an empty sample
-  .Add(1, 2, 3) // Adds 1, 2, 3
+// Start adding/removing from an empty sample
+var stats = SampleStatistics.Empty
+  .Add(1, 2, 3)
   .Add(5d, 4L) // Adds 5d, 4 times
-  .Remove(1d); // Removes 1d
+  .Remove(1d);
   
- var otherStats = SampleStatistics.Empty.Add(1, Math.PI); // Creates a sample with { 1, Pi }
+// Get some stats
+var mean = stats.Mean;
+var sse = stats.SumSquaredError;
+var variance = stats.Variance;
+  
+// Start from an IEnumerable
+var stats2 = new [] {1d, 2d, 3d}.CreateStatistics();
  
- var combined = stats + otherStats; // Combines both samples into one
+// Combine two samples
+var combined = stats + stats2; // Combines both samples into one
+
+// Multiply a sample (converts X to m*X)
+var multiplied = combines * Math.PI;
  
- var multiplied = combined.Multiply(Math.PI); // Multiplies the 'combined' sample by Pi
- 
- var equals = SampleStatistics.Empty.Add(1) == SampleStatistics.Empty.Add(2); // true
- 
- var json = JsonSerializer.Serialize(multiplied); // Json serialization supported
- var fromJson = JsonSerializer.Deserialize<SampleStatistics>(json); // Json deserialization supported
+// Equality
+var equals = SampleStatistics.Empty.Add(1) == SampleStatistics.Empty.Add(2); // true
+
+// To Json
+var json = JsonSerializer.Serialize(multiplied); // Json serialization supported
+
+// From Json
+var fromJson = JsonSerializer.Deserialize<SampleStatistics>(json); // Json deserialization supported
 ```
