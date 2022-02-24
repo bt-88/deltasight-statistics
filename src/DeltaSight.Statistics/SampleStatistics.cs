@@ -1,8 +1,6 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace DeltaSight.Statistics;
 
@@ -18,66 +16,137 @@ namespace DeltaSight.Statistics;
 public record SampleStatistics
 {
     public static readonly SampleStatistics Empty = new();
+
+    /// <summary>
+    /// Creates statistics for a sample
+    /// </summary>
+    /// <param name="values">Value sample</param>
+    /// <returns>A new <see cref="SampleStatistics"/></returns>
+    [Pure]
+    public static SampleStatistics From(IEnumerable<double> values)
+    {
+        using var enumerator = values.GetEnumerator();
+
+        if (!enumerator.MoveNext()) return Empty;
+
+        var stats = From(enumerator.Current);
+        
+        while (enumerator.MoveNext())
+        {
+            stats = stats.Add(enumerator.Current);
+        }
+
+        return stats;
+    }
     
+    /// <summary>
+    /// Creates statistics for a sample with a single value in it
+    /// </summary>
+    /// <param name="value">Value</param>
+    /// <param name="count">Number of times the value is in the sample</param>
+    [Pure]
+    public static SampleStatistics From(double value, long count = 1) => new (count, value * count, 0d);
+
     #region Constructors
     
-    public SampleStatistics()
+    private SampleStatistics()
     {
+    }
+
+    [JsonConstructor]
+    public SampleStatistics(long count, double sum, double sumSquaredErrors)
+    {
+        Count = count;
+        Sum = sum;
+        SumSquaredErrors = sumSquaredErrors;
     }
     
     public SampleStatistics(SampleStatistics other)
     {
-        Sum = other.Sum;
         Count = other.Count;
-        Variance = other.Variance;
-        PopulationVariance = other.PopulationVariance;
-        StandardDeviation = other.StandardDeviation;
-        PopulationStandardDeviation = other.PopulationStandardDeviation;
+        Sum = other.Sum;
+        SumSquaredErrors = other.SumSquaredErrors;
     }
     
     #endregion
 
     #region Properties
-    
+
     /// <summary>
     /// Number of values in the sample
     /// </summary>
-    public long Count { get; init; }
-    
+    public long Count { get; }
+
     /// <summary>
     /// Average sample value
     /// <remarks>Null if <see cref="Count"/> is zero</remarks>
     /// </summary>
-    public double? Mean { get; init; }
-    
+    public double? Mean => IsEmpty() ? null : Sum / Count;
+
     /// <summary>
     /// Standard deviation of the sample (with n - 1 degrees of freedom)
     /// <remarks>Null if <see cref="Count"/> is zero</remarks>
     /// </summary>
-    public double? StandardDeviation { get; init; }
-    
+    public double? StandardDeviation
+    {
+        get
+        {
+            if (IsEmpty()) return null;
+
+            return CorrectVariance(Variance.Value);
+        }
+    }
+
     /// <summary>
     /// Standard deviation of the entire population (n degrees of freedom)
     /// <remarks>Null if <see cref="Count"/> is zero</remarks>
     /// </summary>
-    public double? PopulationStandardDeviation { get; init; }
-    
+    public double? PopulationStandardDeviation
+    {
+        get
+        {
+            if (IsEmpty()) return null;
+
+            return CorrectVariance(PopulationVariance.Value);
+        }
+    }
+
+    private double CorrectVariance(double value)
+    {
+        var stDev = Math.Sqrt(value);
+
+        return double.IsNaN(stDev) ? 0d : stDev;
+    }
+
     /// <summary>
     /// Variance of the sample (with n - 1 of degrees of freedom)
     /// <remarks>Null if <see cref="Count"/> is zero</remarks>
     /// </summary>
-    public double? Variance { get; init; }
-    
+    public double? Variance => IsEmpty()
+        ? null
+        : Count > 1L
+            ? SumSquaredErrors / (Count - 1L)
+            : 0d;
+
     /// <summary>
     /// Variance of the population (with n degrees of freedom)
     /// <remarks>Null if <see cref="Count"/> is zero</remarks>
     /// </summary>
-    public double? PopulationVariance { get; init; }
+    public double? PopulationVariance => IsEmpty() ? null : SumSquaredErrors / Count;
     
     /// <summary>
     /// Sum of the values in the sample
     /// </summary>
-    public double Sum { get; init; }
+    public double Sum { get; }
+    
+    /// <summary>
+    /// Sum of Squared Errors (SSE)
+    /// <remarks>
+    /// The mean of this is the MSE and equals the <see cref="PopulationVariance"/>
+    /// The mean root of this is the RMSE and equals the <see cref="PopulationStandardDeviation"/>
+    /// </remarks>
+    /// </summary>
+    public double SumSquaredErrors { get; }
     
     #endregion
 
@@ -85,7 +154,7 @@ public record SampleStatistics
     
     [MemberNotNullWhen(false, nameof(Mean), nameof(StandardDeviation), nameof(PopulationStandardDeviation), nameof(Variance), nameof(PopulationVariance))]
     public bool IsEmpty() => Count == 0L;
-    
+
     /// <summary>
     /// Creates a new <see cref="SampleStatistics"/> with the addition of <paramref name="value"/>
     /// </summary>
@@ -98,39 +167,16 @@ public record SampleStatistics
     {
         if (count < 1L) throw new ArgumentOutOfRangeException(nameof(count));
 
-        if (IsEmpty()) return FromSingleValue(value, count);
+        if (IsEmpty()) return From(value, count);
         
         var n = Count + count;
         var d = value - Mean.Value;
         var s = d / n;
         var t = d * s * (n - 1L);
 
-        var m2 = PopulationVariance.Value * Count + t;
-        var mean = Mean.Value + d / n * count;
-        
-        return FromM2(n, mean, m2);
+        return new SampleStatistics(n, Sum + value * count, SumSquaredErrors + t);
     }
 
-    /// <summary>
-    /// Create sample statistics for a sample with a single value in it
-    /// </summary>
-    /// <param name="value">Value</param>
-    /// <param name="count">Number of times the value is in the sample</param>
-    [Pure]
-    public static SampleStatistics FromSingleValue(double value, long count = 1)
-    {
-        return new SampleStatistics
-        {
-            Mean = value,
-            StandardDeviation = 0d,
-            PopulationStandardDeviation = 0d,
-            Variance = 0d,
-            PopulationVariance = 0d,
-            Count = count,
-            Sum = value * count
-        };
-    }
-    
     /// <summary>
     /// Creates a new <see cref="SampleStatistics"/> with the removal of <paramref name="value"/>
     /// </summary>
@@ -143,34 +189,25 @@ public record SampleStatistics
     public SampleStatistics Remove(double value, long count = 1L)
     {
         if (count < 1L) throw new ArgumentOutOfRangeException(nameof(count));
-        
-        var n = Count - count;
-
         if (IsEmpty()) throw new InvalidOperationException("Running statistics is empty: nothing to remove");
-        if (n < 0L) throw new InvalidOperationException($"{nameof(count)} is greater than added count");
         
-        if (n == 1L) return FromSingleValue(value, count);
-        if (n == 0L) return Empty;
-        
-        var newMean = (Sum - value * count) / n;
+        var newCount = Count - count;
 
-        var t1 = (Count - 1) * Variance.Value - (value - Mean.Value) * (value - newMean) * count;
-
-        //double newVariance;
-        double newPopVariance;
-
-        if (t1 < 0)
+        switch (newCount)
         {
-            //newVariance = 0d;
-            newPopVariance = 0d;
-        }
-        else
-        {
-            //newVariance = t1 / (n - 1);
-            newPopVariance = t1 / n;    
+            case < 0L:
+                throw new InvalidOperationException($"{nameof(count)} is greater than added count");
+            case 1L:
+                return From(value, count);
+            case 0L:
+                return Empty;
         }
 
-        return FromM2(n, newMean, newPopVariance * n);
+        var newSum = Sum - value * count;
+        var newMean = newSum / newCount;
+        var newSse = SumSquaredErrors - (value - Mean.Value) * (value - newMean) * count;
+
+        return new SampleStatistics(newCount, newSum, newSse);
     }
 
     /// <summary>
@@ -188,11 +225,9 @@ public record SampleStatistics
         var n = Count + other.Count;
         var d = other.Mean.Value - Mean.Value;
         var d2 = d * d;
+        var sse = SumSquaredErrors + other.SumSquaredErrors + d2 * Count * other.Count / n;
 
-        var mean = (Count * Mean.Value + other.Count * other.Mean.Value) / n;
-        var m2 = M2() + other.M2() + d2 * Count * other.Count / n;
-
-        return FromM2(n, mean, m2);
+        return new SampleStatistics(n, Sum + other.Sum, sse);
     }
     
     /// <summary>
@@ -238,32 +273,13 @@ public record SampleStatistics
     {
         if (IsEmpty()) return Empty;
         
-        return FromM2(Count, Mean.Value * multiplier, M2() * multiplier * multiplier);
+        return new SampleStatistics(Count, Sum * multiplier, SumSquaredErrors * multiplier * multiplier);
     }
     
     #endregion
     
     #region Private functions
-    
-    private double M2() => (PopulationVariance ?? 0d) * Count;
-    
-    private static SampleStatistics FromM2(long n, double mean, double m2)
-    {
-        var variance = m2 / (n - 1L);
-        var popVariance = m2 / n;
-        
-        return new SampleStatistics
-        {
-            Sum = n * mean,
-            Mean = mean,
-            Count = n,
-            Variance = variance,
-            PopulationVariance = popVariance,
-            StandardDeviation = Math.Sqrt(variance),
-            PopulationStandardDeviation = Math.Sqrt(popVariance),
-        };
-    }
-    
+
     private SampleStatistics AddMultiple(IEnumerable<double> values)
     {
         return values.Aggregate(this, (current, value) => current.Add(value));

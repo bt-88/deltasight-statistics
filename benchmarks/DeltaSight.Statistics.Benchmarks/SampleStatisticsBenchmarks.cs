@@ -4,26 +4,50 @@ namespace DeltaSight.Statistics.Benchmarks;
 
 public class SampleStatisticsBenchmarks
 {
-    private List<double> values = new (){1d, 2d, 4d};
+    private List<double> _values = new (){1d, 1d, 2d, 3d, 2d, 4d, Math.PI};
+    private SampleStatistics _stats;
 
-
-    [Benchmark]
-    public double SampleStatistics_Add()
+    public SampleStatisticsBenchmarks()
     {
-        return SampleStatistics.Empty
-            .Add(values)
-            .Add(Math.PI).Variance!.Value;
+        _stats = _values.CreateStatistics();
     }
 
     [Benchmark]
-    public double Baseline_Add()
+    public double? SampleStatistics_Compute()
     {
-        return values.Append(Math.PI).Variance();
+        return _values.CreateStatistics().Variance;
+    }
+
+    [Benchmark]
+    public double? SampleStatistics_Add()
+    {
+        return _stats.Add(Math.PI).Variance;
+    }
+    
+    [Benchmark]
+    public double? SampleStatistics_Remove()
+    {
+        return _stats.Remove(Math.PI).Variance;
+    }
+    
+    [Benchmark]
+    public double OnePass_Compute()
+    {
+        return _values.Variance();
+    }
+
+    [Benchmark]
+    public double OnePass_Add()
+    {
+        return _values.Append(Math.PI).Variance();
     }
 }
 
 public static class EnumerableExtensions
 {
+    /// <summary>
+    /// One pass algorithm for variance
+    /// </summary>
     public static double Variance(this IEnumerable<double> source) 
     { 
         var n = 0L;

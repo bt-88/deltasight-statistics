@@ -1,9 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using DeltaSight.Statistics;
+﻿using DeltaSight.Statistics;
 
-var stats = new SampleStatistics();
+var stats = SampleStatistics.Empty;
 
 while (true)
 {
@@ -21,17 +18,13 @@ while (true)
         Console.WriteLine($"### Invalid operation '{operation}'. Please try again.");
         continue;
     }
-    
+
     Console.WriteLine("### Enter a numeric value (or a set of values, seperated by `;`)");
-
-    var input = Console.ReadLine();
-
-    var values = input?
-        .Split(";", StringSplitOptions.RemoveEmptyEntries)
-        .Select(x => double.TryParse(x, out var value) ? value : double.NaN)
-        .Where(x => !double.IsNaN(x))
-        .ToArray();
     
+    var input = Console.ReadLine();
+    
+    var values = ConvertToValues(input);
+
     if (values is null || values.Length == 0)
     {
         Console.WriteLine($"### Error: The input '{input}' is invalid. Please try again.");
@@ -56,4 +49,13 @@ static SampleStatistics ApplyOperation(SampleStatistics stats, string? operation
         "r" => stats.Remove(values),
         _ => stats
     };
+}
+
+static double[]? ConvertToValues(string? input)
+{
+    return input?
+        .Split(";", StringSplitOptions.RemoveEmptyEntries)
+        .Select(x => double.TryParse(x, out var value) ? value : double.NaN)
+        .Where(x => !double.IsNaN(x))
+        .ToArray();
 }

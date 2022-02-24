@@ -34,8 +34,8 @@ public class SampleStatisticsTests
     [Fact]
     public void Add_WithCountGreaterThanOne()
     {
-        var stats = new SampleStatistics()
-            .Add(1d)
+        var stats = SampleStatistics
+            .From(1d)
             .Add(2d, 5L);
 
         stats.IsEmpty().ShouldBeFalse();
@@ -58,8 +58,9 @@ public class SampleStatisticsTests
     [Fact]
     public void Add()
     {
-        var stats = SampleStatistics.Empty.Add(1, 2, 3) + SampleStatistics.Empty.Add(2, 4, 5, 6);
-        
+        var stats = new double[] {1, 2, 3}.CreateStatistics()
+                    + new double[] {2, 4, 5, 6 }.CreateStatistics();
+
         stats.IsEmpty().ShouldBeFalse();
         stats.Sum.ShouldBe(23d, 1e-2);
         stats.Count.ShouldBe(7L);
@@ -78,16 +79,14 @@ public class SampleStatisticsTests
         
         stats.IsEmpty().ShouldBeFalse();
         stats.Mean.ShouldBe(2);
-        stats.Variance!.Value.ShouldBe(0d);
-        stats.StandardDeviation!.Value.ShouldBe(0d);
+        stats.Variance!.Value.ShouldBe(0d, 1e-2);
+        stats.StandardDeviation!.Value.ShouldBe(0d, 1e-2);
     }
 
     [Fact]
     public void AddAndRemove_ShouldNotHaveZeroVariance()
     {
-        var stats = SampleStatistics
-            .Empty
-            .Add(3, 3, 4, 1);
+        var stats = new double[] {3, 3, 4, 1}.CreateStatistics();
         
         stats.IsEmpty().ShouldBeFalse();
         stats.Variance!.Value.ShouldBe(1.58, 1e-2);
@@ -103,15 +102,15 @@ public class SampleStatisticsTests
     [Fact]
     public void Equality()
     {
-        SampleStatistics.Empty.Add(1, 2, 3)
-            .Equals(SampleStatistics.Empty.Add(1, 2, 3))
+        new [] {1d, 2d, 3d}.CreateStatistics()
+            .Equals(new [] {1d, 3d, 2d}.CreateStatistics())
             .ShouldBeTrue();
     }
     
     [Fact]
     public void ShouldSerializeAndDeserialize()
     {
-        var stats = SampleStatistics.Empty.Add(1, 2, 3);
+        var stats = new[] {1d, 2d, 3d}.CreateStatistics();
 
         var json = JsonSerializer.Serialize(stats);
 
@@ -127,7 +126,8 @@ public class SampleStatisticsTests
     [Fact]
     public void Multiply()
     {
-        var stats = SampleStatistics.Empty.Add(2, 4, 6)
+        var stats = new [] {2d, 4d, 6d}
+            .CreateStatistics()
             .Multiply(3);
         
         stats.IsEmpty().ShouldBeFalse();
