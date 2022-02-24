@@ -11,6 +11,9 @@ Useful if you need to update the *running* statistics of a very large sample in 
    - PopulationVariance
    - StDeviation
    - PopulationStDeviation
+   - Sum
+   - Count
+   - SumSquaredError
 * Immutable
 * JSON Serializable/Deserializable
 * Fluent style API
