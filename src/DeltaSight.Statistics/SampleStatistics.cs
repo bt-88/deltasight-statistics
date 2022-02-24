@@ -23,22 +23,16 @@ public record SampleStatistics
     /// <param name="values">Value sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
     [Pure]
-    public static SampleStatistics From(IEnumerable<double> values)
-    {
-        using var enumerator = values.GetEnumerator();
-
-        if (!enumerator.MoveNext()) return Empty;
-
-        var stats = From(enumerator.Current);
-        
-        while (enumerator.MoveNext())
-        {
-            stats = stats.Add(enumerator.Current);
-        }
-
-        return stats;
-    }
+    public static SampleStatistics From(IEnumerable<double> values) => Empty.AddOrRemoveMultiple(values, true);
     
+    /// <summary>
+    /// Creates statistics for a sample
+    /// </summary>
+    /// <param name="values">Value sample</param>
+    /// <returns>A new <see cref="SampleStatistics"/></returns>
+    [Pure]
+    public static SampleStatistics From(params double[] values) => Empty.AddOrRemoveMultiple(values, true);
+
     /// <summary>
     /// Creates statistics for a sample with a single value in it
     /// </summary>
@@ -51,6 +45,7 @@ public record SampleStatistics
     
     private SampleStatistics()
     {
+        IsEmpty = true;
     }
 
     [JsonConstructor]
@@ -81,7 +76,7 @@ public record SampleStatistics
     /// Average sample value
     /// <remarks>Null if <see cref="Count"/> is zero</remarks>
     /// </summary>
-    public double? Mean => IsEmpty() ? null : Sum / Count;
+    public double? Mean => IsEmpty ? null : Sum / Count;
 
     /// <summary>
     /// Standard deviation of the sample (with n - 1 degrees of freedom)
@@ -91,7 +86,7 @@ public record SampleStatistics
     {
         get
         {
-            if (IsEmpty()) return null;
+            if (IsEmpty) return null;
 
             return CorrectVariance(Variance.Value);
         }
@@ -105,7 +100,7 @@ public record SampleStatistics
     {
         get
         {
-            if (IsEmpty()) return null;
+            if (IsEmpty) return null;
 
             return CorrectVariance(PopulationVariance.Value);
         }
@@ -122,7 +117,7 @@ public record SampleStatistics
     /// Variance of the sample (with n - 1 of degrees of freedom)
     /// <remarks>Null if <see cref="Count"/> is zero</remarks>
     /// </summary>
-    public double? Variance => IsEmpty()
+    public double? Variance => IsEmpty
         ? null
         : Count > 1L
             ? SumSquaredErrors / (Count - 1L)
@@ -132,7 +127,7 @@ public record SampleStatistics
     /// Variance of the population (with n degrees of freedom)
     /// <remarks>Null if <see cref="Count"/> is zero</remarks>
     /// </summary>
-    public double? PopulationVariance => IsEmpty() ? null : SumSquaredErrors / Count;
+    public double? PopulationVariance => IsEmpty ? null : SumSquaredErrors / Count;
     
     /// <summary>
     /// Sum of the values in the sample
@@ -153,7 +148,8 @@ public record SampleStatistics
     #region Public functions
     
     [MemberNotNullWhen(false, nameof(Mean), nameof(StandardDeviation), nameof(PopulationStandardDeviation), nameof(Variance), nameof(PopulationVariance))]
-    public bool IsEmpty() => Count == 0L;
+    [JsonIgnore]
+    public bool IsEmpty { get; private init; }
 
     /// <summary>
     /// Creates a new <see cref="SampleStatistics"/> with the addition of <paramref name="value"/>
@@ -167,14 +163,16 @@ public record SampleStatistics
     {
         if (count < 1L) throw new ArgumentOutOfRangeException(nameof(count));
 
-        if (IsEmpty()) return From(value, count);
+        if (IsEmpty) return From(value, count);
         
         var n = Count + count;
         var d = value - Mean.Value;
         var s = d / n;
         var t = d * s * (n - 1L);
 
-        return new SampleStatistics(n, Sum + value * count, SumSquaredErrors + t);
+        var stats = new SampleStatistics(n, Sum + value * count, SumSquaredErrors + t);
+
+        return stats;
     }
 
     /// <summary>
@@ -189,24 +187,20 @@ public record SampleStatistics
     public SampleStatistics Remove(double value, long count = 1L)
     {
         if (count < 1L) throw new ArgumentOutOfRangeException(nameof(count));
-        if (IsEmpty()) throw new InvalidOperationException("Running statistics is empty: nothing to remove");
-        
-        var newCount = Count - count;
+        if (IsEmpty) throw new InvalidOperationException("Running statistics is empty: nothing to remove");
 
-        switch (newCount)
+        switch (Count - count)
         {
             case < 0L:
                 throw new InvalidOperationException($"{nameof(count)} is greater than added count");
             case 1L:
-                return From(value, count);
+                return From(value);
             case 0L:
                 return Empty;
         }
-
-        var newSum = Sum - value * count;
-        var newMean = newSum / newCount;
-        var newSse = SumSquaredErrors - (value - Mean.Value) * (value - newMean) * count;
-
+        
+        var (newCount, newSum, newSse) = Remove(value, count, Count, Sum, SumSquaredErrors);
+        
         return new SampleStatistics(newCount, newSum, newSse);
     }
 
@@ -218,14 +212,14 @@ public record SampleStatistics
     [Pure]
     public SampleStatistics Add(SampleStatistics other)
     {
-        if (IsEmpty() && other.IsEmpty()) return Empty;
-        if (IsEmpty()) return new SampleStatistics(other);
-        if (other.IsEmpty()) return new SampleStatistics(this);
-
+        if (IsEmpty && other.IsEmpty) return Empty;
+        if (IsEmpty) return new SampleStatistics(other);
+        if (other.IsEmpty) return new SampleStatistics(this);
+        
         var n = Count + other.Count;
         var d = other.Mean.Value - Mean.Value;
         var d2 = d * d;
-        var sse = SumSquaredErrors + other.SumSquaredErrors + d2 * Count * other.Count / n;
+        var sse = SumSquaredErrors + other.SumSquaredErrors + d2 * Count * other.Count / n;        
 
         return new SampleStatistics(n, Sum + other.Sum, sse);
     }
@@ -236,7 +230,7 @@ public record SampleStatistics
     /// <param name="values">Values to remove from the sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
     [Pure]
-    public SampleStatistics Remove(IEnumerable<double> values) => RemoveMultiple(values);
+    public SampleStatistics Remove(IEnumerable<double> values) => AddOrRemoveMultiple(values, false);
 
     /// <summary>
     /// Creates a new <see cref="SampleStatistics"/> with the removal of multiple <paramref name="values"/>
@@ -244,7 +238,7 @@ public record SampleStatistics
     /// <param name="values">Values to remove from the sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
     [Pure]
-    public SampleStatistics Remove(params double[] values) => RemoveMultiple(values);
+    public SampleStatistics Remove(params double[] values) => AddOrRemoveMultiple(values, false);
 
     
     /// <summary>
@@ -253,7 +247,7 @@ public record SampleStatistics
     /// <param name="values">Values to add to the sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
     [Pure]
-    public SampleStatistics Add(IEnumerable<double> values) => AddMultiple(values);
+    public SampleStatistics Add(IEnumerable<double> values) => AddOrRemoveMultiple(values, true);
 
     /// <summary>
     /// Creates a new <see cref="SampleStatistics"/> with the addition of multiple <paramref name="values"/>
@@ -261,7 +255,7 @@ public record SampleStatistics
     /// <param name="values">Values to add to the sample</param>
     /// <returns>A new <see cref="SampleStatistics"/></returns>
     [Pure]
-    public SampleStatistics Add(params double[] values) => AddMultiple(values);
+    public SampleStatistics Add(params double[] values) => AddOrRemoveMultiple(values, true);
 
     /// <summary>
     /// Multiplies every value in the sample by a <paramref name="multiplier"/> and returns a new <see cref="SampleStatistics"/>
@@ -271,7 +265,7 @@ public record SampleStatistics
     [Pure]
     public SampleStatistics Multiply(double multiplier)
     {
-        if (IsEmpty()) return Empty;
+        if (IsEmpty) return Empty;
         
         return new SampleStatistics(Count, Sum * multiplier, SumSquaredErrors * multiplier * multiplier);
     }
@@ -280,16 +274,48 @@ public record SampleStatistics
     
     #region Private functions
 
-    private SampleStatistics AddMultiple(IEnumerable<double> values)
+    private static (long N, double Sum, double SSE) Remove(double value, long count, long curN, double curSum, double curSse)
     {
-        return values.Aggregate(this, (current, value) => current.Add(value));
-    }
+        var newCount = curN - count;
 
-    private SampleStatistics RemoveMultiple(IEnumerable<double> values)
-    {
-        return values.Aggregate(this, (current, value) => current.Remove(value));
+        if (newCount < 0L) throw new InvalidOperationException();
+
+        var curMean = curSum / curN;
+        var newSum = curSum - value * count;
+        var newMean = newSum / newCount;
+        var newSse = curSse - (value - curMean) * (value - newMean) * count;
+
+        return (newCount, newSum, newSse);
     }
     
+    private static (long N, double Sum, double SSE) Add(double value, long count, long curN, double curSum, double curSse)
+    {
+        if (curN == 0L) return (count, count * value, 0d);
+        
+        var n = curN + count;
+
+        var curMean = curSum / curN;
+        var delta = value - curMean;
+        
+        var sum = curSum + (value * count);
+        var mean = curMean + (delta / n) * count;
+        var sse = curSse + delta * delta * curN / n;
+
+        return (n, sum, sse);
+    }
+    
+    private SampleStatistics AddOrRemoveMultiple(IEnumerable<double> values, bool add)
+    {
+        var n = Count;
+        var sum = Sum;
+        var sse = SumSquaredErrors;
+
+        foreach (var x in values)
+            (n, sum, sse) = add ? Add(x, 1L, n, sum, sse) : Remove(x, 1L, n, sum, sse);
+
+        return new SampleStatistics(n, sum, sse);
+    }
+
     #endregion
 
     #region Operators

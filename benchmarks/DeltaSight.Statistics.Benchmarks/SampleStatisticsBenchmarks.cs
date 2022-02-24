@@ -4,8 +4,8 @@ namespace DeltaSight.Statistics.Benchmarks;
 
 public class SampleStatisticsBenchmarks
 {
-    private List<double> _values = new (){1d, 1d, 2d, 3d, 2d, 4d, Math.PI};
-    private SampleStatistics _stats;
+    private readonly List<double> _values = new (){1d, 1d, 2d, 3d, 2d, 4d, Math.PI};
+    private readonly SampleStatistics _stats;
 
     public SampleStatisticsBenchmarks()
     {
@@ -31,13 +31,13 @@ public class SampleStatisticsBenchmarks
     }
     
     [Benchmark]
-    public double OnePass_Compute()
+    public double Baseline_Compute()
     {
         return _values.Variance();
     }
 
     [Benchmark]
-    public double OnePass_Add()
+    public double Baseline_Add()
     {
         return _values.Append(Math.PI).Variance();
     }

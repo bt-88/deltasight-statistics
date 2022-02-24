@@ -4,7 +4,7 @@ var stats = SampleStatistics.Empty;
 
 while (true)
 {
-    if (stats.IsEmpty())
+    if (stats.IsEmpty)
     {
         Console.WriteLine("### Your sample is empty");
     }
