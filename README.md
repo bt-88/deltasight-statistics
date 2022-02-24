@@ -1,8 +1,8 @@
 # DeltaSight.Statistics
 Efficient tracking of the statistical descriptors (Mean, St. Deviation, Variance) of a numeric sample.
-Manipulation of the descriptors is done *in one pass* with help of Welford's algoirithm for updating the *variance* (and *standard deviation*).
+Manipulation of the descriptors is done *in one pass* with help of Welford's algorithm for updating the *variance* (and *standard deviation*).
 
-Useful if you need to update the *running* statistics of a very large sample in *one pass*. For instance when processing streaming data.
+Useful if you need to update the *running* statistics of a very large sample in *one pass*, such as with streaming data.
 
 ## Features
 * Fast one pass algorithm for:
@@ -11,9 +11,20 @@ Useful if you need to update the *running* statistics of a very large sample in 
    - PopulationVariance
    - StDeviation
    - PopulationStDeviation
+   - Sum
+   - Count
+   - SumSquaredError
 * Immutable
 * JSON Serializable/Deserializable
 * Fluent style API
+
+### Compared to MathNet.Numerics.Statistics.RunningStatistics
+RunningStatistics lacks:
+- Remove API
+- Support for adding a value more than once
+- Immutability
+- (Proper) Json serialization support
+
 
 ## How to use
 ### SampleStatistics
@@ -53,19 +64,24 @@ if (!stats2.IsEmpty())
    Console.WriteLine(stats2.Mean.Value); // Does not warn about `Mean` being possibly null
 }
 ```
-## Benchmark
+## Benchmarks
+```
+|                        Method |       Mean |     Error |    StdDev |
+|------------------------------ |-----------:|----------:|----------:|
+|      SampleStatistics_Compute |  57.002 ns | 0.3728 ns | 0.3113 ns |
+|               MathNet_Compute |  76.545 ns | 0.3206 ns | 0.2999 ns |
+|              Baseline_Compute |  54.018 ns | 0.0681 ns | 0.0604 ns |
+| SampleStatistics_AddFiveTimes |   7.800 ns | 0.0438 ns | 0.0410 ns |
+|          MathNet_AddFiveTimes |  37.874 ns | 0.1875 ns | 0.1566 ns |
+|         Baseline_AddFiveTimes | 292.260 ns | 1.2068 ns | 1.1288 ns |
+|          SampleStatistics_Add |   7.828 ns | 0.0314 ns | 0.0293 ns |
+|                   MathNet_Add |   6.741 ns | 0.0576 ns | 0.0450 ns |
+|                  Baseline_Add | 102.016 ns | 0.2428 ns | 0.2152 ns |
+```
 ```
 BenchmarkDotNet=v0.13.1, OS=macOS Monterey 12.2.1 (21D62) [Darwin 21.3.0]
 Apple M1, 1 CPU, 8 logical and 8 physical cores
 .NET SDK=6.0.100
   [Host]     : .NET 6.0.0 (6.0.21.52210), Arm64 RyuJIT
   DefaultJob : .NET 6.0.0 (6.0.21.52210), Arm64 RyuJIT
-
-
-|                  Method |       Mean |     Error |    StdDev |
-|------------------------ |-----------:|----------:|----------:|
-| SampleStatistics_Create |  52.025 ns | 0.0956 ns | 0.0798 ns |
-|    SampleStatistics_Add |   8.456 ns | 0.1044 ns | 0.0925 ns |
-|         Baseline_Create |  54.649 ns | 0.9422 ns | 0.8353 ns |
-|            Baseline_Add | 103.958 ns | 1.3625 ns | 1.2078 ns |
 ```
