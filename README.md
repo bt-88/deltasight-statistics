@@ -53,3 +53,19 @@ if (!stats2.IsEmpty())
    Console.WriteLine(stats2.Mean.Value); // Does not warn about `Mean` being possibly null
 }
 ```
+## Benchmark
+```
+BenchmarkDotNet=v0.13.1, OS=macOS Monterey 12.2.1 (21D62) [Darwin 21.3.0]
+Apple M1, 1 CPU, 8 logical and 8 physical cores
+.NET SDK=6.0.100
+  [Host]     : .NET 6.0.0 (6.0.21.52210), Arm64 RyuJIT
+  DefaultJob : .NET 6.0.0 (6.0.21.52210), Arm64 RyuJIT
+
+
+|                  Method |       Mean |     Error |    StdDev |
+|------------------------ |-----------:|----------:|----------:|
+| SampleStatistics_Create |  52.025 ns | 0.0956 ns | 0.0798 ns |
+|    SampleStatistics_Add |   8.456 ns | 0.1044 ns | 0.0925 ns |
+|         Baseline_Create |  54.649 ns | 0.9422 ns | 0.8353 ns |
+|            Baseline_Add | 103.958 ns | 1.3625 ns | 1.2078 ns |
+```
