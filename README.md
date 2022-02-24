@@ -18,6 +18,14 @@ Useful if you need to update the *running* statistics of a very large sample in 
 * JSON Serializable/Deserializable
 * Fluent style API
 
+### Compared to MathNet.Numerics.Statistics.RunningStatistics
+RunningStatistics lacks:
+- Remove API
+- Support for adding a value more than once
+- Immutability
+- (Proper) Json serialization support
+
+
 ## How to use
 ### SampleStatistics
 ```csharp
