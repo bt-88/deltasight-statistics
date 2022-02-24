@@ -4,7 +4,7 @@
         <TargetFramework>net5.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Authors>bas@deltasight.nl</Authors>
+        <Authors>Bas Timmermans</Authors>
         <Description>Provides efficient tracking of common statistical descriptors (mean, st. dev., sum, count) of a numeric sample</Description>
         <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
         <PackageTags>statistics</PackageTags>
