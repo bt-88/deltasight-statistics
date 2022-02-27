@@ -30,8 +30,7 @@ RunningStatistics lacks:
 ### SampleStatistics
 ```csharp
 // Start adding/removing from an empty sample
-var stats = SampleStatistics.Empty
-  .Add(1, 2, 3)
+var stats = SampleStatistics.From(1, 2, 3)
   .Add(5d, 4L) // Adds 5d, 4 times
   .Remove(1d);
   
@@ -40,7 +39,7 @@ var mean = stats.Mean;
 var sse = stats.SumSquaredError;
 var variance = stats.Variance;
   
-// Start from an IEnumerable
+// IEnumerable extension
 var stats2 = new [] {1d, 2d, 3d}.CreateStatistics();
  
 // Combine two samples
