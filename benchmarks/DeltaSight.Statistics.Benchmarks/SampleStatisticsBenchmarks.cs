@@ -7,12 +7,12 @@ public class SampleStatisticsBenchmarks
 {
     private readonly List<double> _values = new (){1d, 1d, 2d, 3d, 2d, 4d, Math.PI};
     private readonly SampleStatistics _stats;
-    private readonly RunningStatistics _runningStats;
+    private readonly SimpleStatisticsTracker _runningStats;
 
     public SampleStatisticsBenchmarks()
     {
         _stats = _values.CreateStatistics();
-        _runningStats = new RunningStatistics(_values);
+        _runningStats = new SimpleStatisticsTracker(_values);
     }
 
     [Benchmark]
@@ -24,7 +24,7 @@ public class SampleStatisticsBenchmarks
     [Benchmark]
     public double MathNet_Compute()
     {
-        return new RunningStatistics(_values).Variance;
+        return new SimpleStatisticsTracker(_values).Variance;
     }
 
     [Benchmark]

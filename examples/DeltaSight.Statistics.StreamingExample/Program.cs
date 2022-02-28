@@ -1,10 +1,10 @@
 ﻿using DeltaSight.Statistics;
 
-var stats = SampleStatistics.Empty;
+var tracker = new AdvancedStatisticsTracker();
 
 while (true)
 {
-    if (stats.IsEmpty)
+    if (tracker.IsEmpty())
     {
         Console.WriteLine("### Your sample is empty");
     }
@@ -31,9 +31,11 @@ while (true)
         continue;
     }
 
-    stats = ApplyOperation(stats, operation, values);
+    ApplyOperation(tracker, operation, values);
 
-    Console.WriteLine($"### '{input}' was processed (operation: '{operation}'). The new stats are\n\t{stats}");
+    var snapshot = tracker.TakeSnapshot();
+    
+    Console.WriteLine($"### '{input}' was processed (operation: '{operation}'). The stats snapshot is\n\t{snapshot}");
 }
 
 static bool IsOperationValid(string? operation)
@@ -41,14 +43,19 @@ static bool IsOperationValid(string? operation)
     return operation is not null && new[] {"a", "r"}.Contains(operation.ToLower());
 }
 
-static SampleStatistics ApplyOperation(SampleStatistics stats, string? operation, IEnumerable<double> values)
+static void ApplyOperation(AdvancedStatisticsTracker stats, string? operation, IEnumerable<double> values)
 {
-    return operation?.ToLower() switch
+    switch (operation?.ToLower())
     {
-        "a" => stats.Add(values),
-        "r" => stats.Remove(values),
-        _ => stats
-    };
+        case "a":
+            stats.Add(values);
+            break;
+        case "r":
+            stats.Remove(values);
+            break;
+        default:
+            throw new ArgumentOutOfRangeException(nameof(operation));
+    }
 }
 
 static double[]? ConvertToValues(string? input)
