@@ -5,7 +5,7 @@ using Xunit;
 
 namespace DeltaSight.Statistics.Tests;
 
-public class SampleStatisticsTests
+public class SimpleStatisticsTrackerTests
 {
     [Fact]
     public void Remove_FromEmpty_ShouldThrow()

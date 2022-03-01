@@ -1,41 +1,51 @@
 ﻿using DeltaSight.Statistics;
 
-var tracker = new AdvancedStatisticsTracker();
+Console.WriteLine("### Choose a statistics tracker: [S]imple, [A]dvanced");
+
+var tracker = ProvideTracker(Console.ReadLine());
 
 while (true)
 {
-    if (tracker.IsEmpty())
+    try
     {
-        Console.WriteLine("### Your sample is empty");
+        if (tracker.IsEmpty())
+        {
+            Console.WriteLine("### Your sample is empty");
+        }
+
+        Console.WriteLine("### Choose an operation: [A]dd, [R]emove");
+
+        var operation = Console.ReadLine();
+
+        if (!IsOperationValid(operation))
+        {
+            Console.WriteLine($"### Invalid operation '{operation}'. Please try again.");
+            continue;
+        }
+
+        Console.WriteLine("### Enter a numeric value (or a set of values, seperated by `;`)");
+
+        var input = Console.ReadLine();
+
+        var values = ConvertToValues(input);
+
+        if (values is null || values.Length == 0)
+        {
+            Console.WriteLine($"### Error: The input '{input}' is invalid. Please try again.");
+            continue;
+        }
+
+        ApplyOperation(tracker, operation, values);
+
+        var snapshot = tracker.TakeSnapshot();
+
+        Console.WriteLine(
+            $"### '{input}' was processed (operation: '{operation}'). The stats snapshot is\n\t{snapshot}");
     }
-
-    Console.WriteLine("### Choose an operation: [A]dd, [R]emove");
-
-    var operation = Console.ReadLine();
-
-    if (!IsOperationValid(operation))
+    catch (Exception ex)
     {
-        Console.WriteLine($"### Invalid operation '{operation}'. Please try again.");
-        continue;
+        Console.WriteLine("### Error: " + ex.Message);
     }
-
-    Console.WriteLine("### Enter a numeric value (or a set of values, seperated by `;`)");
-    
-    var input = Console.ReadLine();
-    
-    var values = ConvertToValues(input);
-
-    if (values is null || values.Length == 0)
-    {
-        Console.WriteLine($"### Error: The input '{input}' is invalid. Please try again.");
-        continue;
-    }
-
-    ApplyOperation(tracker, operation, values);
-
-    var snapshot = tracker.TakeSnapshot();
-    
-    Console.WriteLine($"### '{input}' was processed (operation: '{operation}'). The stats snapshot is\n\t{snapshot}");
 }
 
 static bool IsOperationValid(string? operation)
@@ -43,7 +53,7 @@ static bool IsOperationValid(string? operation)
     return operation is not null && new[] {"a", "r"}.Contains(operation.ToLower());
 }
 
-static void ApplyOperation(AdvancedStatisticsTracker stats, string? operation, IEnumerable<double> values)
+static void ApplyOperation(IStatisticsTracker stats, string? operation, IEnumerable<double> values)
 {
     switch (operation?.ToLower())
     {
@@ -56,6 +66,16 @@ static void ApplyOperation(AdvancedStatisticsTracker stats, string? operation, I
         default:
             throw new ArgumentOutOfRangeException(nameof(operation));
     }
+}
+
+static IStatisticsTracker ProvideTracker(string? operation)
+{
+    return operation?.ToLower() switch
+    {
+        "a" => new AdvancedStatisticsTracker(),
+        "s" => new SimpleStatisticsTracker(),
+        _ => throw new ArgumentOutOfRangeException(nameof(operation))
+    };
 }
 
 static double[]? ConvertToValues(string? input)

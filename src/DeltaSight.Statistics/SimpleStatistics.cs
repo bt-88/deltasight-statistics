@@ -1,6 +1,6 @@
 namespace DeltaSight.Statistics;
 
-public record SimpleStatistics
+public record SimpleStatistics : IStatisticsSnapshot
 {
 
     //public static readonly Statistics Empty = new();

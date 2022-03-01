@@ -7,7 +7,7 @@ namespace DeltaSight.Statistics;
 /// Tracks statistical descriptors for a sample of values
 /// </summary>
 [Serializable]
-public class SimpleStatisticsTracker : IStatisticsTracker<SimpleStatistics>
+public class SimpleStatisticsTracker : IStatisticsTracker<SimpleStatistics>, IStatisticsTracker
 {
     #region Equality
 
@@ -90,6 +90,11 @@ public class SimpleStatisticsTracker : IStatisticsTracker<SimpleStatistics>
     [JsonInclude] [JsonPropertyName("SSE")] public double SumErrorSquared { get; private set; }
     
     #endregion
+
+    IStatisticsSnapshot? IReadOnlyStatisticsTracker<IStatisticsSnapshot>.TakeSnapshot()
+    {
+        return TakeSnapshot();
+    }
 
     public bool IsEmpty() => Count == 0L;
     
@@ -214,12 +219,10 @@ public class SimpleStatisticsTracker : IStatisticsTracker<SimpleStatistics>
     /// <summary>
     /// Combines the current tracker with another <see cref="SimpleStatisticsTracker"/>
     /// </summary>
-    /// <param name="value">Another tracker</param>
+    /// <param name="other">Another tracker</param>
     /// <returns>A new <see cref="SimpleStatisticsTracker"/></returns>
-    public IStatisticsTracker<SimpleStatistics> Add(IStatisticsTracker<SimpleStatistics> value)
+    public SimpleStatisticsTracker Combine(SimpleStatisticsTracker other)
     {
-        if (value is not SimpleStatisticsTracker other) throw new InvalidOperationException();
-        
         var n = Count + other.Count;
 
         if (n == 0L) return new SimpleStatisticsTracker(); 
@@ -238,7 +241,7 @@ public class SimpleStatisticsTracker : IStatisticsTracker<SimpleStatistics>
     /// </summary>
     /// <param name="multiplier">Multiplier</param>
     /// <returns>A new <see cref="SimpleStatisticsTracker"/></returns>
-    public IStatisticsTracker<SimpleStatistics> Multiply(double multiplier)
+    public SimpleStatisticsTracker Multiply(double multiplier)
     {
         if (Count == 0L) return new SimpleStatisticsTracker();
 
@@ -259,8 +262,17 @@ public class SimpleStatisticsTracker : IStatisticsTracker<SimpleStatistics>
         if (b is null) return new SimpleStatisticsTracker(a!);
         if (a is null) return new SimpleStatisticsTracker(b);
         
-        return (SimpleStatisticsTracker)a.Add(b);
+        return a.Combine(b);
     }
-    
+
+    [return: NotNullIfNotNull("a")]
+    public static SimpleStatisticsTracker? operator *(
+        SimpleStatisticsTracker? a,
+        double multiplier)
+    {
+        if (a is null) return null;
+        return a.Multiply(multiplier);
+    }
+
     #endregion
 }

@@ -1,6 +1,12 @@
 namespace DeltaSight.Statistics;
 
-public interface IStatisticsTracker<T>
+
+public interface IStatisticsTracker : IStatisticsTracker<IStatisticsSnapshot>
+{
+    
+}
+
+public interface IStatisticsTracker<out T> : IReadOnlyStatisticsTracker<T> where T : IStatisticsSnapshot
 {
     void Add(double value, long count = 1L);
     void Add(params double[] values);
@@ -9,8 +15,14 @@ public interface IStatisticsTracker<T>
     void Remove(params double[] values);
     void Remove(IEnumerable<double> values);
     void Clear();
+}
+
+public interface IReadOnlyStatisticsTracker<out T> where T : IStatisticsSnapshot
+{
     T? TakeSnapshot();
     bool IsEmpty();
-    IStatisticsTracker<T> Multiply(double multiplier);
-    IStatisticsTracker<T> Add(IStatisticsTracker<T> other);
+}
+
+public interface IStatisticsSnapshot
+{
 }
