@@ -1,3 +1,5 @@
+![DeltaSight](https://github.com/bt-88/deltasight-statistics/blob/master/images/icon.png)
+
 # DeltaSight.Statistics
 Provides efficient tracking of statistical descriptors of a changing or running value sample.
 Manipulation of the descriptors efficient because it is done *in one pass* as much as possible.
