@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>default</LangVersion>
+        <Title>DeltaSight.Statistics.Abstractions</Title>
+        <Authors>Bas Timmermans</Authors>
+        <Description>Provides the abstractions for DeltaSight.Statistics</Description>
+        <Copyright>Copyright Deltasight and contributors under the MIT license</Copyright>
+        <PackageProjectUrl>https://github.com/bt-88/deltasight-statistics</PackageProjectUrl>
+        <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/bt-88/deltasight-statistics</RepositoryUrl>
+        <PackageTags>statistics</PackageTags>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+</Project>
