@@ -18,4 +18,8 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\DeltaSight.Statistics.Abstractions\DeltaSight.Statistics.Abstractions.csproj" />
+    </ItemGroup>
+
 </Project>

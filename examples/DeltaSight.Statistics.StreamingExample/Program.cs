@@ -1,4 +1,5 @@
 ﻿using DeltaSight.Statistics;
+using DeltaSight.Statistics.Abstractions;
 
 Console.WriteLine("### Choose a statistics tracker: [S]imple, [A]dvanced");
 
@@ -53,7 +54,7 @@ static bool IsOperationValid(string? operation)
     return operation is not null && new[] {"a", "r"}.Contains(operation.ToLower());
 }
 
-static void ApplyOperation(IStatisticsTracker stats, string? operation, IEnumerable<double> values)
+static void ApplyOperation(IStatisticsTracker<IStatisticsSnapshot> stats, string? operation, IEnumerable<double> values)
 {
     switch (operation?.ToLower())
     {
@@ -68,7 +69,7 @@ static void ApplyOperation(IStatisticsTracker stats, string? operation, IEnumera
     }
 }
 
-static IStatisticsTracker ProvideTracker(string? operation)
+static IStatisticsTracker<IStatisticsSnapshot> ProvideTracker(string? operation)
 {
     return operation?.ToLower() switch
     {

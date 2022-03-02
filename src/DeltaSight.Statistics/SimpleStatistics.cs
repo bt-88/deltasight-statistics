@@ -1,10 +1,9 @@
+using DeltaSight.Statistics.Abstractions;
+
 namespace DeltaSight.Statistics;
 
 public record SimpleStatistics : IStatisticsSnapshot
 {
-
-    //public static readonly Statistics Empty = new();
-
     /// <summary>Value count</summary>
     public long Count { get; init; }
 

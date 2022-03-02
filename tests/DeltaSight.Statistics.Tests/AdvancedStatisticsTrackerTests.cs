@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Shouldly;
 using Xunit;
 
@@ -24,18 +25,26 @@ public class AdvancedStatisticsTrackerTests
         Assert.Throws<StatisticsTrackerException>(
             () =>
             {
-                var tracker = new AdvancedStatisticsTracker(10d);
+                var tracker = AdvancedStatisticsTracker.From(10d);
                 
                 tracker.Remove(10d, 2);
             });
     }
 
     [Fact]
+    public void Add_WithInfiniteDecimals()
+    {
+        var tracker = AdvancedStatisticsTracker.From(Math.PI);
+        
+        tracker.IntegerMultiplier.ShouldBe(10000); // 10000 is max
+    }
+    
+    [Fact]
     public void AddAndRemove_WithSameQuantity_ShouldBeEmpty()
     {
         var tracker = new AdvancedStatisticsTracker();
-        tracker.Add(Math.PI, 10);
-        tracker.Remove(Math.PI, 10);
+        tracker.Add(1d, 10);
+        tracker.Remove(1d, 10);
         tracker.IsEmpty().ShouldBeTrue();
 
         var stats = tracker.TakeSnapshot();
@@ -52,7 +61,7 @@ public class AdvancedStatisticsTrackerTests
     [Fact]
     public void AddAndRemove_WithCountGreaterThanOne()
     {
-        var tracker = new AdvancedStatisticsTracker(20d);
+        var tracker = AdvancedStatisticsTracker.From(20d);
         
         tracker.IsEmpty().ShouldBeFalse();
         tracker.GreatestCommonDivisor.ShouldNotBeNull();
@@ -87,7 +96,7 @@ public class AdvancedStatisticsTrackerTests
     [Fact]
     public void AddAndRemove_WithDecimalValues()
     {
-        var tracker = new AdvancedStatisticsTracker(0.05, 0.2, 2, 20, 400, 8000);
+        var tracker = AdvancedStatisticsTracker.From(0.05, 0.2, 2, 20, 400, 8000);
 
         tracker.GreatestCommonDivisor.ShouldNotBeNull();
         tracker.GreatestCommonDivisor.ShouldBe(5L);
@@ -102,7 +111,7 @@ public class AdvancedStatisticsTrackerTests
         tracker.GreatestCommonDivisor.ShouldBe(1L);
         tracker.IntegerMultiplier.ShouldBe(1000L);
         
-        tracker.Remove(0.2, 0.009);
+        tracker.Remove(new [] {0.2, 0.009 });
 
         tracker.GreatestCommonDivisor.ShouldBe(2L);
         tracker.IntegerMultiplier.ShouldBe(1L);
@@ -128,4 +137,32 @@ public class AdvancedStatisticsTrackerTests
         snap1.Equals(snap2).ShouldBeTrue();
         ReferenceEquals(snap1, snap2).ShouldBeFalse();
     }
+    
+    [Fact]
+    public void Multiply()
+    {
+        var tracker = AdvancedStatisticsTracker.From(2, 4, 6).Multiply(3) as AdvancedStatisticsTracker;
+
+        tracker.ShouldNotBeNull();
+        tracker.IsEmpty().ShouldBeFalse();
+        tracker.GreatestCommonDivisor.ShouldBe(6L);
+        tracker.IntegerMultiplier.ShouldBe(1L);
+
+    }
+
+    [Fact]
+    public void SerializeAndSerialize()
+    {
+        var tracker = AdvancedStatisticsTracker.From(1, 2, 3);
+        var json = JsonSerializer.Serialize(tracker);
+
+        var deserTracker = JsonSerializer.Deserialize<AdvancedStatisticsTracker>(json);
+
+        tracker.Equals(deserTracker).ShouldBeTrue();
+
+        var json2 = JsonSerializer.Serialize(deserTracker);
+        
+        json.ShouldBe(json2);
+    }
+        
 }

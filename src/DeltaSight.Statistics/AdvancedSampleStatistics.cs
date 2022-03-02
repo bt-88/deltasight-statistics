@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using DeltaSight.Statistics.Abstractions;
 
 namespace DeltaSight.Statistics;
 
@@ -8,29 +9,15 @@ namespace DeltaSight.Statistics;
 /// Tracks the 'advanced' statistics of a value sample such as the Greatest Common Divisor and a frequency diagram
 /// </summary>
 [Serializable]
-public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>, IStatisticsTracker
+public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
 {
     #region Private fields
     
     private SortedDictionary<double, long>? _frequencies;
     private SortedDictionary<long, long>? _integerMultipliers;
     private SimpleStatisticsTracker? _simple;
-    private long? _gcd;
-    private long _integerMultiplier = 1L;
-    
+
     #endregion
-
-    public override bool Equals(object? obj)
-    {
-        if (obj is not AdvancedStatisticsTracker ast) return false;
-
-        if (IsEmpty() && ast.IsEmpty()) return true;
-        if (IsEmpty() || ast.IsEmpty()) return false;
-
-        return ast._frequencies.ContentEquals(_frequencies)
-               && ast._integerMultipliers.ContentEquals(_integerMultipliers)
-               && ast._simple.Equals(_simple);
-    }
 
     #region Properties
 
@@ -38,122 +25,88 @@ public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>,
     /// Multiplier that converts all values to integers
     /// <remarks>It equals <c>10 ^ d</c> where `d` is the maximum of decimal places of any included value</remarks>
     /// </summary>
-    public long IntegerMultiplier => _integerMultiplier;
+    [JsonPropertyName("Multiplier")]
+    public long IntegerMultiplier { get; private set; } = 1L;
 
     /// <summary>
     /// Greatest common divisor (scaled up to an integer number)
     /// </summary>
     [JsonInclude]
-    public long? GreatestCommonDivisor => _gcd;
+    [JsonPropertyName("GCD")]
+    public long? GreatestCommonDivisor { get; private set; }
 
     /// <summary>
     /// Frequency diagram for the included values
     /// </summary>
     [JsonInclude]
-    public IReadOnlyDictionary<double, long>? Frequencies => _frequencies;
+    public IReadOnlyDictionary<double, long>? Frequencies
+    {
+        get => _frequencies;
+        private set => _frequencies = value is null ? null : new SortedDictionary<double, long>((IDictionary<double, long>) value);
+    }
 
     /// <summary>
     /// Frequency diagram for the included integer multipliers
     /// </summary>
     [JsonInclude]
-    public IReadOnlyDictionary<long, long>? IntegerMultipliers => _integerMultipliers;
+    [JsonPropertyName("Multipliers")]
+    public IReadOnlyDictionary<long, long>? IntegerMultipliers
+    {
+        get  => _integerMultipliers;
+        private set => _integerMultipliers = value is null ? null : new SortedDictionary<long, long>((IDictionary<long, long>) value);
+    }
 
-    [JsonInclude] public IReadOnlyStatisticsTracker<SimpleStatistics>? Simple => _simple;
+    [JsonInclude]
+    [JsonHandleAs(typeof(SimpleStatisticsTracker))]
+    public IReadOnlyStatisticsTracker<SimpleStatistics>? Simple
+    {
+        get => _simple;
+        private set => _simple = (SimpleStatisticsTracker?) value;
+    }
 
     #endregion
     
     #region Constructors
 
-    /// <summary>
-    /// Creates an empty advanced statistical descriptors tracker
-    /// </summary>
-    public AdvancedStatisticsTracker()
+    public AdvancedStatisticsTracker() : base(0L)
     {
     }
 
-    [JsonConstructor]
-    public AdvancedStatisticsTracker(SortedDictionary<long, long>? integerMultipliers, long greatestCommonDivisor,
-        SortedDictionary<double, long>? frequencies, SimpleStatisticsTracker? simple)
+    public static AdvancedStatisticsTracker From(params double[] values) => new(values);
+    
+    public AdvancedStatisticsTracker (IEnumerable<double> values) : base(values)
     {
-        _integerMultipliers =  integerMultipliers;
-        _simple = simple;
     }
-
-    private AdvancedStatisticsTracker(AdvancedStatisticsTracker other)
+    
+    private AdvancedStatisticsTracker(AdvancedStatisticsTracker other) : base(other)
     {
         if (other.IsEmpty()) return;
         
         _simple = new SimpleStatisticsTracker(other._simple);
         _frequencies = new SortedDictionary<double, long>(other._frequencies);
         _integerMultipliers = new SortedDictionary<long, long>(other._integerMultipliers);
-        _gcd = other._gcd;
-        _integerMultiplier = other._integerMultiplier;
-    }
-
-    /// <summary>
-    /// Creates a new advanced statistical descriptors tracker and adds a collection of values to it
-    /// </summary>
-    public AdvancedStatisticsTracker(IEnumerable<double> values)
-    {
-        foreach (var value in values) Add(value);
-    }
-
-    /// <summary>
-    /// Creates a new advanced statistical descriptors tracker and adds a collection of values to it
-    /// </summary>
-    public AdvancedStatisticsTracker(params double[] values) : this(values as IEnumerable<double>)
-    {
-    }
-
-    /// <summary>
-    /// Creates a new advanced statistical descriptors tracker and adds a collection of values to it
-    /// </summary>
-    /// <param name="valueCounts"></param>
-    public AdvancedStatisticsTracker(IEnumerable<KeyValuePair<double, long>> valueCounts)
-    {
-        foreach (var (value, count) in valueCounts) Add(value, count);
+        
+        GreatestCommonDivisor = other.GreatestCommonDivisor;
+        IntegerMultiplier = other.IntegerMultiplier;
     }
 
     #endregion
 
-    private static long ComputeIntegerScale(double value) => (long)Math.Pow(10, GetDecimalPlaces((decimal)value, 4));
-
-
-    /// <summary>
-    /// Adds a <see cref="IDictionary{TKey, TValue}"/> to the population
-    /// </summary>
-    /// <param name="hist">A collection of values and corresponding observation counts</param>
-    public void Add(IEnumerable<KeyValuePair<double, long>>? hist)
-    {
-        if (hist is null) return;
-        
-        foreach(var (quantity, count) in hist) Add(quantity, count);
-    }
     
-    /// <summary>
-    /// Adds a <see cref="IDictionary{TKey, TValue}"/> to the population
-    /// </summary>
-    /// <param name="hist">A collection of values and corresponding observation counts</param>
-    public void Add(IEnumerable<KeyValuePair<double, int>>? hist)
-    {
-        if (hist is null) return;
-        
-        foreach(var (quantity, count) in hist) Add(quantity, count);
-    }
-
-    #region IStatissTracker implementations
-
-    IStatisticsSnapshot? IReadOnlyStatisticsTracker<IStatisticsSnapshot>.TakeSnapshot()
-    {
-        return TakeSnapshot();
-    }
+    #region Overrides
 
     [MemberNotNullWhen(false, nameof(_simple), nameof(_frequencies), nameof(_integerMultipliers))]
-    public bool IsEmpty() => _simple?.IsEmpty() ?? true;
-    
-    public AdvancedStatistics? TakeSnapshot()
+    public override bool IsEmpty() => base.IsEmpty();
+
+    public override StatisticsTracker<AdvancedStatistics> Copy()
     {
-        if (_simple is null || _frequencies is null || GreatestCommonDivisor is null) return null;
+        return new AdvancedStatisticsTracker(this);
+    }
+
+    protected override AdvancedStatistics? TakeSnapshotCore()
+    {
+        if (_simple is null || _frequencies is null || GreatestCommonDivisor is null)
+            return null;
 
         var simpleSnap = _simple.TakeSnapshot();
 
@@ -178,7 +131,7 @@ public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>,
         };
     }
 
-    public AdvancedStatisticsTracker Multiply(double multiplier)
+    protected override AdvancedStatisticsTracker MultiplyCore(double multiplier)
     {
         if (_frequencies is null) return new AdvancedStatisticsTracker();
 
@@ -192,76 +145,48 @@ public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>,
         return tracker;
     }
 
-    public AdvancedStatisticsTracker Combine(AdvancedStatisticsTracker other)
+        
+    protected override bool EqualsCore(StatisticsTracker<AdvancedStatistics> other)
     {
+        if (other is not AdvancedStatisticsTracker ast) return false;
+
+        return ast._frequencies.ContentEquals(_frequencies)
+               && ast._integerMultipliers.ContentEquals(_integerMultipliers)
+               && ast._simple!.Equals(_simple);
+    }
+    
+    protected override AdvancedStatisticsTracker CombineCore(StatisticsTracker<AdvancedStatistics> other)
+    {
+        if (other is not AdvancedStatisticsTracker ast) throw new InvalidOperationException();
+        
         var tracker = new AdvancedStatisticsTracker();
         
         tracker.Add(_frequencies);
-        tracker.Add(other._frequencies);
+        tracker.Add(ast._frequencies);
 
         return tracker;
     }
-    
-    public void Clear()
+
+    protected override void ClearCore()
     {
-        _simple?.Clear();
-        _integerMultipliers?.Clear();
-        _frequencies?.Clear();
-        _integerMultiplier = 1L;
-        _gcd = null;
+        _simple!.Clear();
+        _integerMultipliers!.Clear();
+        _frequencies!.Clear();
+        IntegerMultiplier = 1L;
+        GreatestCommonDivisor = null;
     }
     
-    /// <summary>
-    /// Removes a <paramref name="value"/> from the population 
-    /// </summary>
-    /// <param name="value">The value to be removed from the population</param>
-    /// <param name="count">The number of observations of that value to be removed</param>
-    /// <exception cref="KeyNotFoundException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    public void Remove(double value, long count = 1L)
+    protected override void RemoveCore(double value, long count)
     {
-        try
-        {
-            if (_simple is null) throw new NullReferenceException();
-            
-            RemoveFromFrequencies(value, count);
-
-            if (_frequencies!.Count == 0)
-            {
-                // Clear entire state if frequency diagram is now empty
-                Clear();
-                return;
-            }
-            
-            RemoveFromGCD(value, count);
-            _simple.Remove(value, count);
-        }
-        catch (Exception ex)
-        {
-            throw new StatisticsTrackerException($"Could not remove value '{value}' with count '{count}'", ex);
-        }
+        _simple!.Remove(value, count);
+        RemoveFromFrequencies(value, count);
+        RemoveFromGCD(value, count);
     }
 
-    public void Remove(IEnumerable<double> values)
-    {
-        foreach(var value in values) Remove(value);
-    }
+    private static long ComputeIntegerScale(double value) => (long)Math.Pow(10, GetDecimalPlaces((decimal)value, 4));
 
-    public void Remove(params double[] values) => Remove(values as IEnumerable<double>);
     
-    public void Add(params double[] values) => Add(values as IEnumerable<double>);
-
-    public void Add(IEnumerable<double> values)
-    {
-        foreach (var value in values) Add(value);
-    }
-    
-    /// <summary>
-    /// Adds a value to the population
-    /// </summary>
-    /// <param name="value">Value to be added</param>
-    /// <param name="count">Number of observations of that value</param>
-    public void Add(double value, long count = 1L)
+    protected override void AddCore(double value, long count)
     {
         _simple ??= new SimpleStatisticsTracker();
             
@@ -275,8 +200,8 @@ public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>,
         }
         else
         {
-            // Update int multiplier
-            if (value != 0)
+            // New value so update int multiplier
+            if (value != 0d)
             {
                 _integerMultipliers ??= new SortedDictionary<long, long>();
 
@@ -287,23 +212,23 @@ public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>,
                     _integerMultipliers[myIntegerScale] += count;
                 }
 
-                if (myIntegerScale > _integerMultiplier)
+                if (myIntegerScale > IntegerMultiplier)
                 {
-                    _gcd = myIntegerScale * _gcd / _integerMultiplier; // Scale up GCD
-                    _integerMultiplier = myIntegerScale;
+                    GreatestCommonDivisor *= myIntegerScale / IntegerMultiplier; // Scale up GCD
+                    IntegerMultiplier = myIntegerScale;
                 }
             }
             
-            var intValue = (long)Math.Round(value * _integerMultiplier);
+            var intValue = (long)Math.Round(value * IntegerMultiplier);
 
-            _gcd = _gcd is null ? intValue : ComputeGreatestCommonDivisor(intValue, _gcd.Value);
+            GreatestCommonDivisor = GreatestCommonDivisor is null ? intValue : ComputeGreatestCommonDivisor(intValue, GreatestCommonDivisor.Value);
         }
     }
     
     #endregion
 
     #region Private methods
-    
+
     private void RemoveFromFrequencies(double value, long count)
     {
         var currentCount = _frequencies![value];
@@ -341,9 +266,9 @@ public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>,
             _integerMultipliers.Remove(myIntegerScale);
 
             // Only Adjust GCD and IntegerScale if required
-            if (myIntegerScale == _integerMultiplier)
+            if (myIntegerScale == IntegerMultiplier)
             {
-                _integerMultiplier = _integerMultipliers.Keys.Any()
+                IntegerMultiplier = _integerMultipliers.Keys.Any()
                     ? _integerMultipliers.Keys.Last()
                     : 1L; // Update Integer multiplier
             }
@@ -355,16 +280,16 @@ public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>,
         }
 
         // Update GCD
-        var newGcd = (long)Math.Round(_frequencies!.Keys.First() * _integerMultiplier);
+        var newGcd = (long)Math.Round(_frequencies!.Keys.First() * IntegerMultiplier);
 
         foreach (var val in _frequencies.Keys.Skip(1))
         {
             if (newGcd == 1) break;
 
-            newGcd = ComputeGreatestCommonDivisor(newGcd, (long)Math.Round(val * _integerMultiplier));
+            newGcd = ComputeGreatestCommonDivisor(newGcd, (long)Math.Round(val * IntegerMultiplier));
         }
 
-        _gcd = newGcd;
+        GreatestCommonDivisor = newGcd;
     }
     
     /// <summary>
@@ -407,32 +332,6 @@ public class AdvancedStatisticsTracker : IStatisticsTracker<AdvancedStatistics>,
         }
 
         return places;
-    }
-    
-    #endregion
-    
-    #region Operators
-    
-    [return: NotNullIfNotNull("a")]
-    [return: NotNullIfNotNull("b")]
-    public static AdvancedStatisticsTracker? operator +(
-        AdvancedStatisticsTracker? a,
-        AdvancedStatisticsTracker? b)
-    {
-        if (a is null && b is null) return null;
-        if (b is null) return new AdvancedStatisticsTracker(a!);
-        if (a is null) return new AdvancedStatisticsTracker(b);
-        
-        return a.Combine(b);
-    }
-
-    [return: NotNullIfNotNull("a")]
-    public static AdvancedStatisticsTracker? operator *(
-        AdvancedStatisticsTracker? a,
-        double multiplier)
-    {
-        if (a is null) return null;
-        return a.Multiply(multiplier);
     }
 
     #endregion

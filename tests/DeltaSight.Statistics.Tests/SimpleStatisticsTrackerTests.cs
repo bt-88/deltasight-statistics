@@ -24,7 +24,7 @@ public class SimpleStatisticsTrackerTests
         Assert.Throws<StatisticsTrackerException>(
             () =>
             {
-                var tracker = new SimpleStatisticsTracker(10d);
+                var tracker = SimpleStatisticsTracker.From(10d);
                 
                 tracker.Remove(10d, 2);
             });
@@ -38,21 +38,23 @@ public class SimpleStatisticsTrackerTests
         tracker.Remove(Math.PI, 10);
         tracker.IsEmpty().ShouldBeTrue();
 
-        var stats = tracker.TakeSnapshot();
-        
-        stats.ShouldBeNull();
+        tracker
+            .TakeSnapshot()
+            .ShouldBeNull();
     }
 
     [Fact]
     public void Empty_TakeSnapshot_ShouldBeNull()
     {
-        new SimpleStatisticsTracker().TakeSnapshot().ShouldBeNull();
+        new SimpleStatisticsTracker()
+            .TakeSnapshot()
+            .ShouldBeNull();
     }
     
     [Fact]
     public void Add_WithCountGreaterThanOne()
     {
-        var tracker = new SimpleStatisticsTracker(1d);
+        var tracker = SimpleStatisticsTracker.From(1d);
         
         tracker.Add(2d, 5L);
         
@@ -82,12 +84,12 @@ public class SimpleStatisticsTrackerTests
     }
 
     [Fact]
-    public void Add()
+    public void Combine()
     {
-        var tracker = new SimpleStatisticsTracker(1, 2, 3)
-                    + new SimpleStatisticsTracker(2, 4, 5, 6);
-        
-        tracker.IsEmpty().ShouldBeFalse();
+        var tracker1 = SimpleStatisticsTracker.From(1, 2, 3);
+        var tracker2 = SimpleStatisticsTracker.From(2, 4, 5, 6);
+
+        var tracker = tracker1.Combine(tracker2);
 
         var stats = tracker.TakeSnapshot();
 
@@ -123,7 +125,7 @@ public class SimpleStatisticsTrackerTests
     [Fact]
     public void AddAndRemove_ShouldHaveZeroVariance()
     {
-        var tracker = new SimpleStatisticsTracker(2d, 2d, 4d);
+        var tracker = SimpleStatisticsTracker.From(2d, 2d, 4d);
         
         tracker.Remove(4);
         tracker.IsEmpty().ShouldBeFalse();
@@ -139,7 +141,7 @@ public class SimpleStatisticsTrackerTests
     [Fact]
     public void AddAndRemove_ShouldNotHaveZeroVariance()
     {
-        var tracker = new SimpleStatisticsTracker(3, 3, 4, 1);
+        var tracker = SimpleStatisticsTracker.From(3, 3, 4, 1);
         var stats = tracker.TakeSnapshot();
 
         stats.ShouldNotBeNull();
@@ -158,8 +160,8 @@ public class SimpleStatisticsTrackerTests
     [Fact]
     public void Serialize()
     {
-        JsonSerializer.Serialize(new SimpleStatisticsTracker(1, 2, 3))
-            .ShouldBe("{\"N\":3,\"Sum\":6,\"SSE\":2}");
+        JsonSerializer.Serialize(SimpleStatisticsTracker.From(1, 2, 3))
+            .ShouldBe("{\"Sum\":6,\"SSE\":2,\"N\":3}");
     }
 
     [Fact]
@@ -183,7 +185,7 @@ public class SimpleStatisticsTrackerTests
     [Fact]
     public void Multiply()
     {
-        var tracker = new SimpleStatisticsTracker(2, 4, 6).Multiply(3);
+        var tracker = SimpleStatisticsTracker.From(2, 4, 6).Multiply(3);
         
         tracker.IsEmpty().ShouldBeFalse();
 

@@ -19,6 +19,7 @@ public static class SampleStatisticsExtensions
     /// <returns>A new <see cref="AdvancedStatisticsTracker"/></returns>
     public static AdvancedStatisticsTracker TrackAdvancedStatistics(this IEnumerable<double> source)
     {
+        
         return new AdvancedStatisticsTracker(source);
     }
 }
