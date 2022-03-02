@@ -6,59 +6,55 @@ namespace DeltaSight.Statistics.Benchmarks;
 public class SampleStatisticsBenchmarks
 {
     private readonly List<double> _values = new (){1d, 1d, 2d, 3d, 2d, 4d, Math.PI};
-    private readonly SampleStatistics _stats;
-    private readonly RunningStatistics _runningStats;
 
-    public SampleStatisticsBenchmarks()
+    [Benchmark]
+    [BenchmarkCategory("Compute")]
+    public double Compute_Variance_TrackSimpleStatistics()
     {
-        _stats = _values.CreateStatistics();
-        _runningStats = new RunningStatistics(_values);
+        return _values.TrackSimpleStatistics().TakeSnapshot()!.Variance;
     }
 
     [Benchmark]
-    public double? SampleStatistics_Compute()
-    {
-        return _values.CreateStatistics().Variance;
-    }
-
-    [Benchmark]
-    public double MathNet_Compute()
+    [BenchmarkCategory("Compute")]
+    public double Compute_Variance_RunningStatistics()
     {
         return new RunningStatistics(_values).Variance;
     }
 
     [Benchmark]
-    public double Baseline_Compute()
+    [BenchmarkCategory("Compute")]
+    public double Compute_Variance_ExtensionMethod()
     {
         return _values.Variance();
     }
 
     [Benchmark]
-    public double? SampleStatistics_Add()
+    [BenchmarkCategory("AddFiveTimes")]
+    public double AddFiveTimes_SimpleStatisticsTracker()
     {
-        return _stats.Add(Math.PI).Variance;
-    }
-    
-    [Benchmark]
-    public double? SampleStatistics_AddFiveTimes()
-    {
-        return _stats.Add(Math.PI, 5L).Variance;
+        var tracker = new SimpleStatisticsTracker(_values);
+        tracker.Add(Math.PI, 5L);
+        return tracker.TakeSnapshot()!.Variance;
     }
 
     [Benchmark]
-    public double MathNet_AddFiveTimes()
+    [BenchmarkCategory("AddFiveTimes")]
+    public double AddFiveTimes_RunningStatistics()
     {
-        _runningStats.Push(Math.PI);
-        _runningStats.Push(Math.PI);
-        _runningStats.Push(Math.PI);
-        _runningStats.Push(Math.PI);
-        _runningStats.Push(Math.PI);
+        var runningStats = new RunningStatistics(_values);
+        
+        runningStats.Push(Math.PI);
+        runningStats.Push(Math.PI);
+        runningStats.Push(Math.PI);
+        runningStats.Push(Math.PI);
+        runningStats.Push(Math.PI);
 
-        return _runningStats.Variance;
+        return runningStats.Variance;
     }
     
     [Benchmark]
-    public double Baseline_AddFiveTimes()
+    [BenchmarkCategory("AddFiveTimes")]
+    public double AddFiveTimes_ExtensionMethod()
     {
         return _values
             .Append(Math.PI)
@@ -68,18 +64,32 @@ public class SampleStatisticsBenchmarks
             .Append(Math.PI)
             .Variance();
     }
-    
 
     [Benchmark]
-    public double MathNet_Add()
+    [BenchmarkCategory("Add")]
+    public double Add_SimpleStatisticsTracker()
     {
-        _runningStats.Push(Math.PI);
+        var tracker = new SimpleStatisticsTracker(_values);
+        
+        tracker.Add(Math.PI);
 
-        return _runningStats.Variance;
+        return tracker.TakeSnapshot()!.Variance;
+    }
+    
+    [Benchmark]
+    [BenchmarkCategory("Add")]
+    public double Add_RunningStatistics()
+    {
+        var runningStats = new RunningStatistics(_values);
+        
+        runningStats.Push(Math.PI);
+
+        return runningStats.Variance;
     }
 
     [Benchmark]
-    public double Baseline_Add()
+    [BenchmarkCategory("Add")]
+    public double Add_ExtensionMethod()
     {
         return _values.Append(Math.PI).Variance();
     }

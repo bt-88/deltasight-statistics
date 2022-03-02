@@ -5,7 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Authors>Bas Timmermans</Authors>
-        <Description>Provides efficient tracking of common statistical descriptors (mean, st. dev., sum, count) of a numeric sample</Description>
+        <PackageIconUrl>images/icon.png</PackageIconUrl>
+        <Description>Provides trackers for the statistical descriptors of a 'running' sample</Description>
         <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
         <PackageTags>statistics</PackageTags>
         <Title>DeltaSight.Statistics</Title>
@@ -14,6 +15,12 @@
         <PackageProjectUrl>https://github.com/bt-88/deltasight-statistics</PackageProjectUrl>
         <RepositoryUrl>https://github.com/bt-88/deltasight-statistics</RepositoryUrl>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>2.0.0</PackageVersion>
     </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DeltaSight.Statistics.Abstractions\DeltaSight.Statistics.Abstractions.csproj" />
+    </ItemGroup>
 
 </Project>
