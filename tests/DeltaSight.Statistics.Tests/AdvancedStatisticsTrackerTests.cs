@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using Shouldly;
 using Xunit;
@@ -150,6 +151,16 @@ public class AdvancedStatisticsTrackerTests
 
     }
 
+    [Fact]
+    public void TakeSnapshot_ProbabilitiesShouldSumTo1()
+    {
+        var snapshot = new AdvancedStatisticsTracker(Enumerable.Range(0, 99).Select(x => Random.Shared.NextDouble() * 10d))
+            .TakeSnapshot();
+
+        snapshot.ShouldNotBeNull();
+        snapshot.Probabilities.Values.Sum().ShouldBe(1d, 1e-10);
+    }
+    
     [Fact]
     public void SerializeAndSerialize()
     {
