@@ -24,9 +24,21 @@ public record SimpleStatistics : IStatisticsSnapshot
 
     /// <summary>Population standard deviation based on n-1 degrees of freedom</summary>
     public double PopulationStandardDeviation { get; init; }
-    
+
     /// <summary>
     /// Sum of the squared errors
     /// </summary>
     public double SumSquaredError { get; init; }
+    
+    /// <summary>
+    /// <see cref="PopulationStandardDeviation"/> divided by the <see cref="Mean"/>
+    /// <remarks>Is zero if the <see cref="Mean"/> is zero</remarks>
+    /// </summary>
+    public double PopulationCoefficientOfVariation { get; init; }
+    
+    /// <summary>
+    /// <see cref="StandardDeviation"/> divided by the <see cref="Mean"/>
+    /// <remarks>Is zero if the <see cref="Mean"/> is zero</remarks>
+    /// </summary>
+    public double CoefficientOfVariation { get; init; }
 }

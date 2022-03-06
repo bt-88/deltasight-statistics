@@ -79,6 +79,9 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
 
         var mean = Sum / Count;
 
+        var cv = mean > 0d ? stDev / mean : 0d;
+        var popCv = mean > 0d ? popStDev / mean : 0d;
+
         return new SimpleStatistics
         {
             Count = Count,
@@ -88,7 +91,9 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
             StandardDeviation = stDev,
             PopulationStandardDeviation = popStDev,
             Sum = Sum,
-            SumSquaredError = SumSquaredError
+            SumSquaredError = SumSquaredError,
+            CoefficientOfVariation = cv,
+            PopulationCoefficientOfVariation = popCv
         };
     }
     
