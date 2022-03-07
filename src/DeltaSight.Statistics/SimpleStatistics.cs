@@ -13,16 +13,25 @@ public record SimpleStatistics : IStatisticsSnapshot
     /// <summary>Sum of all values</summary>
     public double Sum { get; init; }
 
-    /// <summary>Sample variance based on n-1 degrees of freedom</summary>
+    /// <summary>
+    /// Sample variance based on n-1 degrees of freedom
+    /// <remarks>Is zero if n=1</remarks>
+    /// </summary>
     public double Variance { get; init; }
 
     /// <summary>Population variance based on n degrees of freedom</summary>
     public double PopulationVariance { get; init; }
 
-    /// <summary>Sample standard deviation based on n-1 degrees of freedom</summary>
+    /// <summary>
+    /// Sample standard deviation based on n-1 degrees of freedom
+    /// <remarks>Is zero if <see cref="Variance"/> is zero</remarks>
+    /// </summary>
     public double StandardDeviation { get; init; }
 
-    /// <summary>Population standard deviation based on n-1 degrees of freedom</summary>
+    /// <summary>
+    /// Population standard deviation based on n degrees of freedom
+    /// <remarks>Is zero if <see cref="PopulationVariance"/> is zero</remarks>
+    /// </summary>
     public double PopulationStandardDeviation { get; init; }
 
     /// <summary>

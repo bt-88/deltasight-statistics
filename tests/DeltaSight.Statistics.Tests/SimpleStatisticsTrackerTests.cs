@@ -50,6 +50,40 @@ public class SimpleStatisticsTrackerTests
             .TakeSnapshot()
             .ShouldBeNull();
     }
+
+    [Fact]
+    public void TakeSnapshot_FromSinglePositiveValue()
+    {
+        var stats = SimpleStatisticsTracker.From(1d).TakeSnapshot();
+
+        stats.ShouldNotBeNull();
+        
+        stats.PopulationVariance.ShouldBe(0d);
+        stats.PopulationStandardDeviation.ShouldBe(0d);
+        
+        stats.Variance.ShouldBe(0d);
+        stats.StandardDeviation.ShouldBe(0d);
+        
+        stats.CoefficientOfVariation.ShouldBe(0d);
+        stats.PopulationCoefficientOfVariation.ShouldBe(0d);
+    }
+    
+    [Fact]
+    public void TakeSnapshot_FromSingleZero()
+    {
+        var stats = SimpleStatisticsTracker.From(0d).TakeSnapshot();
+
+        stats.ShouldNotBeNull();
+        
+        stats.PopulationVariance.ShouldBe(0d);
+        stats.PopulationStandardDeviation.ShouldBe(0d);
+        
+        stats.Variance.ShouldBe(0d);
+        stats.StandardDeviation.ShouldBe(0d);
+        
+        stats.CoefficientOfVariation.ShouldBe(0d);
+        stats.PopulationCoefficientOfVariation.ShouldBe(0d);
+    }
     
     [Fact]
     public void Add_WithCountGreaterThanOne()
