@@ -14,7 +14,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     /// <summary>
     /// Creates an empty tracker
     /// </summary>
-    public SimpleStatisticsTracker() : base(0L)
+    public SimpleStatisticsTracker() : base(0L, 0L)
     {
     }
 
@@ -26,7 +26,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     }
 
     [JsonConstructor]
-    private SimpleStatisticsTracker(long n, double sum, double sse) : base(n)
+    private SimpleStatisticsTracker(long n, long n0, double sum, double sse) : base(n, n0)
     {
         Sum = sum;
         SumSquaredError = sse;
@@ -84,6 +84,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
 
         return new SimpleStatistics
         {
+            CountZero = CountZero,
             Count = Count,
             Mean = mean,
             Variance = variance,
@@ -156,7 +157,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         var d2 = d * d;
         var sse = SumSquaredError + sst.SumSquaredError + d2 * Count * sst.Count / n;
 
-        return new SimpleStatisticsTracker(n, Sum + sst.Sum, sse);
+        return new SimpleStatisticsTracker(n, CountZero + other.CountZero, Sum + sst.Sum, sse);
     }
 
     public override SimpleStatisticsTracker Copy() => new (this);
@@ -165,7 +166,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     {
         if (Count == 0L) return new SimpleStatisticsTracker();
 
-        return new SimpleStatisticsTracker(Count, Sum * multiplier, SumSquaredError * multiplier * multiplier);
+        return new SimpleStatisticsTracker(Count, CountZero, Sum * multiplier, SumSquaredError * multiplier * multiplier);
     }
 
     protected override bool EqualsCore(StatisticsTracker<SimpleStatistics> other)

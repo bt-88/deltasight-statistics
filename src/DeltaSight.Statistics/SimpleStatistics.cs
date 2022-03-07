@@ -6,6 +6,11 @@ public record SimpleStatistics : IStatisticsSnapshot
 {
     /// <summary>Value count</summary>
     public long Count { get; init; }
+    
+    /// <summary>
+    /// Number of values equal to zero
+    /// </summary>
+    public long CountZero { get; init; }
 
     /// <summary>Mean or average value</summary>
     public double Mean { get; init; }

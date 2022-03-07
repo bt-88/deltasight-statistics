@@ -1,4 +1,4 @@
-using System.Reflection.Metadata.Ecma335;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using DeltaSight.Statistics.Abstractions;
 
@@ -7,29 +7,28 @@ namespace DeltaSight.Statistics;
 public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     where T : IStatisticsSnapshot
 {
-    private long _count;
-    
     #region Properties
 
     [JsonInclude]
     [JsonPropertyName("N")]
-    public long Count
-    {
-        get => _count;
-        private set => _count = value;
-    }
+    public long Count { get; private set; }
+
+    [JsonInclude]
+    [JsonPropertyName("N0")]
+    public long CountZero { get; private set; }
 
     #endregion
     
     #region Constructors
 
-    protected StatisticsTracker(StatisticsTracker<T> tracker) : this(tracker.Count)
+    protected StatisticsTracker(StatisticsTracker<T> tracker) : this(tracker.Count, tracker.CountZero)
     {
     }
 
-    protected StatisticsTracker(long count)
+    protected StatisticsTracker(long count, long countZero)
     {
-        _count = count;
+        Count = count;
+        CountZero = countZero;
     }
 
     /// <summary>
@@ -72,9 +71,25 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     /// <returns>A new snapshot</returns>
     public T? TakeSnapshot()
     {
-        if (Count == 0L) return default;
+        if (IsEmpty()) return default;
 
         return TakeSnapshotCore();
+    }
+    
+    /// <summary>
+    /// Tries to take a snapshot of the current tracked statistical descriptors
+    /// </summary>
+    /// <param name="snapshot">Snapshot of the current tracked statistical descriptors</param>
+    /// <returns>True if a snapshot was taken, false otherwise</returns>
+    public bool TryTakeSnapshot([NotNullWhen(true)] out T? snapshot)
+    {
+        snapshot = default;
+        
+        if (IsEmpty()) return false;
+
+        snapshot = TakeSnapshotCore();
+
+        return snapshot is not null;
     }
     
     /// <summary>
@@ -106,7 +121,8 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     /// </summary>
     public void Clear()
     {
-        _count = 0L;
+        Count = 0L;
+        CountZero = 0L;
         
         ClearCore();
     }
@@ -133,7 +149,15 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
             
             RemoveCore(value, count);
 
-            _count -= count;
+            Count -= count;
+
+            if (value != 0d) return;
+            
+            if (count > CountZero)
+                throw new ArgumentOutOfRangeException(nameof(count),
+                    $"{nameof(count)} ({count}) is greater than the existing {nameof(CountZero)} ({CountZero})");
+                
+            CountZero -= count;
         }
         catch (Exception e)
         {
@@ -158,7 +182,11 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
         {
             AddCore(value, count);
             
-            _count += count;
+            Count += count;
+
+            if (value != 0d) return;
+
+            CountZero += count;
         }
         catch (Exception e)
         {

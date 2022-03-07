@@ -68,7 +68,7 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
     
     #region Constructors
 
-    public AdvancedStatisticsTracker() : base(0L)
+    public AdvancedStatisticsTracker() : base(0L, 0L)
     {
     }
 
@@ -121,6 +121,7 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
                 x => 1d * x.Value / simpleSnap.Count),
             GreatestCommonDivisor = 1d * GreatestCommonDivisor.Value / IntegerMultiplier,
             Count = simpleSnap.Count,
+            CountZero = simpleSnap.CountZero,
             Mean = simpleSnap.Mean,
             Sum = simpleSnap.Sum,
             Variance = simpleSnap.Variance,
