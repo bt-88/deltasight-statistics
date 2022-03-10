@@ -15,6 +15,7 @@
         <PackageTags>statistics</PackageTags>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>2.0.0-beta20220308</PackageVersion>
     </PropertyGroup>
 
 </Project>

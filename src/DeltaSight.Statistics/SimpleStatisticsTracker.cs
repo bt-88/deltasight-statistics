@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using DeltaSight.Statistics.Abstractions;
 
 namespace DeltaSight.Statistics;
 
@@ -69,8 +70,10 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         SumSquaredError = 0d;
     }
     
-    protected override SimpleStatistics TakeSnapshotCore()
+    public override SimpleStatistics TakeSnapshot()
     {
+        if (IsEmpty()) return SimpleStatistics.Empty;
+
         var variance = Count > 1L ? SumSquaredError / (Count - 1L) : 0d;
         var popVariance = SumSquaredError / Count;
         

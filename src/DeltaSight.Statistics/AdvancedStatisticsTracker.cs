@@ -103,14 +103,12 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
         return new AdvancedStatisticsTracker(this);
     }
 
-    protected override AdvancedStatistics? TakeSnapshotCore()
+    public override AdvancedStatistics TakeSnapshot()
     {
         if (_simple is null || _frequencies is null || GreatestCommonDivisor is null)
-            return null;
+            return AdvancedStatistics.Empty;
 
         var simpleSnap = _simple.TakeSnapshot();
-
-        if (simpleSnap is null) return null;
 
         return new AdvancedStatistics
         {

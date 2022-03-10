@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using Shouldly;
 using Xunit;
@@ -34,13 +35,13 @@ public class SimpleStatisticsTrackerTests
     public void AddAndRemove_WithSameQuantity_ShouldBeEmpty()
     {
         var tracker = new SimpleStatisticsTracker();
+        
         tracker.Add(Math.PI, 10);
         tracker.Remove(Math.PI, 10);
         tracker.IsEmpty().ShouldBeTrue();
 
         tracker
-            .TakeSnapshot()
-            .ShouldBeNull();
+            .TakeSnapshot().ShouldBe(SimpleStatistics.Empty);
     }
 
     [Fact]
@@ -48,25 +49,49 @@ public class SimpleStatisticsTrackerTests
     {
         new SimpleStatisticsTracker()
             .TakeSnapshot()
-            .ShouldBeNull();
+            .ShouldBe(SimpleStatistics.Empty);
     }
 
     [Fact]
+    public void Add_WithDictionary()
+    {
+        var tracker = new SimpleStatisticsTracker();
+
+        tracker.Add(new Dictionary<double, long>
+        {
+            {0, 1},
+            {2, 1},
+            {4, 2},
+        });
+
+        var stats = tracker.TakeSnapshot();
+
+        stats.ShouldNotBeNull();
+        stats.Count.ShouldBe(4);
+        stats.Mean.ShouldBe(2.5, 1e-2);
+        stats.StandardDeviation.ShouldBe(1.91, 1e-2);
+        stats.Variance.ShouldBe(3.67, 1e-2);
+    }
+
+    [Fact]
+    public void TakeSnapshot_FromEmpty()
+    {
+        AdvancedStatisticsTracker.From().TakeSnapshot().ShouldBe(AdvancedStatistics.Empty);
+    }
+    
+    [Fact]
     public void TakeSnapshot_FromSinglePositiveValue()
     {
-        if (SimpleStatisticsTracker
-            .From(1d)
-            .TryTakeSnapshot(out var stats))
-        {
-            stats.PopulationVariance.ShouldBe(0d);
-            stats.PopulationStandardDeviation.ShouldBe(0d);
+        var stats = SimpleStatisticsTracker.From(1d).TakeSnapshot();
+        
+        stats.PopulationVariance.ShouldBe(0d);
+        stats.PopulationStandardDeviation.ShouldBe(0d);
 
-            stats.Variance.ShouldBe(0d);
-            stats.StandardDeviation.ShouldBe(0d);
+        stats.Variance.ShouldBe(0d);
+        stats.StandardDeviation.ShouldBe(0d);
 
-            stats.CoefficientOfVariation.ShouldBe(0d);
-            stats.PopulationCoefficientOfVariation.ShouldBe(0d);
-        }
+        stats.CoefficientOfVariation.ShouldBe(0d);
+        stats.PopulationCoefficientOfVariation.ShouldBe(0d);
     }
     
     [Fact]
@@ -200,7 +225,26 @@ public class SimpleStatisticsTrackerTests
         JsonSerializer.Serialize(SimpleStatisticsTracker.From(0, 1, 2, 3))
             .ShouldBe("{\"Sum\":6,\"SSE\":5,\"N\":4,\"N0\":1}");
     }
+    
+    [Fact]
+    public void Serialize_Empty()
+    {
+        JsonSerializer.Serialize(new SimpleStatisticsTracker())
+            .ShouldBe("{\"Sum\":0,\"SSE\":0,\"N\":0,\"N0\":0}");
+    }
 
+    [Fact]
+    public void Deserialize_Empty()
+    {
+        var tracker = JsonSerializer.Deserialize<SimpleStatisticsTracker>("{}");
+
+        tracker.ShouldNotBeNull();
+        tracker.IsEmpty().ShouldBeTrue();
+        tracker.TakeSnapshot().ShouldBe(SimpleStatistics.Empty);
+        
+        JsonSerializer.Serialize(tracker).ShouldBe("{\"Sum\":0,\"SSE\":0,\"N\":0,\"N0\":0}");
+    }
+    
     [Fact]
     public void Deserialize()
     {
@@ -208,18 +252,17 @@ public class SimpleStatisticsTrackerTests
 
         tracker.ShouldNotBeNull();
 
-        if (tracker.TryTakeSnapshot(out var stats))
-        {
-            stats.Count.ShouldBe(3L);
-            stats.CountZero.ShouldBe(1L);
-            stats.Mean.ShouldBe(2d, 1e-2);
-            stats.Sum.ShouldBe(6d, 1e-2);
-            stats.SumSquaredError.ShouldBe(2d, 1e-2);
-            stats.StandardDeviation.ShouldBe(1d, 1e-2);
-            stats.PopulationStandardDeviation.ShouldBe(0.82, 1e-2);
-            stats.Variance.ShouldBe(1d, 1e-2);
-            stats.PopulationVariance.ShouldBe(.66, 1e-2);
-        }
+        var stats = tracker.TakeSnapshot();
+        
+        stats.Count.ShouldBe(3L);
+        stats.CountZero.ShouldBe(1L);
+        stats.Mean.ShouldBe(2d, 1e-2);
+        stats.Sum.ShouldBe(6d, 1e-2);
+        stats.SumSquaredError.ShouldBe(2d, 1e-2);
+        stats.StandardDeviation.ShouldBe(1d, 1e-2);
+        stats.PopulationStandardDeviation.ShouldBe(0.82, 1e-2);
+        stats.Variance.ShouldBe(1d, 1e-2);
+        stats.PopulationVariance.ShouldBe(.66, 1e-2);
     }
 
     [Fact]

@@ -4,6 +4,8 @@ namespace DeltaSight.Statistics;
 
 public record SimpleStatistics : IStatisticsSnapshot
 {
+    public static SimpleStatistics Empty = new();
+    
     /// <summary>Value count</summary>
     public long Count { get; init; }
     
@@ -12,8 +14,11 @@ public record SimpleStatistics : IStatisticsSnapshot
     /// </summary>
     public long CountZero { get; init; }
 
-    /// <summary>Mean or average value</summary>
-    public double Mean { get; init; }
+    /// <summary>
+    /// Mean or average value
+    ///<remarks>Is NaN if the count is zero</remarks>
+    /// </summary>
+    public double Mean { get; init; } = double.NaN;
 
     /// <summary>Sum of all values</summary>
     public double Sum { get; init; }

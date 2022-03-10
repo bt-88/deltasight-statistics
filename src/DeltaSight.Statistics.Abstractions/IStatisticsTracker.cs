@@ -1,7 +1,7 @@
 namespace DeltaSight.Statistics.Abstractions;
 
 
-public interface IStatisticsTracker<T> : IReadOnlyStatisticsTracker<T> where T : IStatisticsSnapshot
+public interface IStatisticsTracker<out T> : IReadOnlyStatisticsTracker<T> where T : IStatisticsSnapshot
 {
     void Add(double value, long count = 1L);
     void Add(IEnumerable<KeyValuePair<double, int>>? hist);

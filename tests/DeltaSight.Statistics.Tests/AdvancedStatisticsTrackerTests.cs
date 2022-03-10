@@ -50,13 +50,13 @@ public class AdvancedStatisticsTrackerTests
 
         var stats = tracker.TakeSnapshot();
         
-        stats.ShouldBeNull();
+        stats.ShouldBe(AdvancedStatistics.Empty);
     }
 
     [Fact]
     public void Empty_TakeSnapshot_ShouldBeNull()
     {
-        new AdvancedStatisticsTracker().TakeSnapshot().ShouldBeNull();
+        new AdvancedStatisticsTracker().TakeSnapshot().ShouldBe(AdvancedStatistics.Empty);
     }
     
     [Fact]

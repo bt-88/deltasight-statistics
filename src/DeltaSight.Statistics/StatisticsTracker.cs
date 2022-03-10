@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using DeltaSight.Statistics.Abstractions;
 
@@ -58,40 +57,17 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     protected abstract void RemoveCore(double value, long count);
     protected abstract void AddCore(double value, long count);
     protected abstract void ClearCore();
-    protected abstract T? TakeSnapshotCore();
+    /// <summary>
+    /// Creates a snapshot of the statistical descriptors based on the current tracker state
+    /// </summary>
+    /// <returns>A new snapshot</returns>
+    public abstract T TakeSnapshot();
     protected abstract bool EqualsCore(StatisticsTracker<T> other);
 
     #endregion
 
     #region Public members
 
-    /// <summary>
-    /// Creates a snapshot of the statistical descriptors based on the current tracker state
-    /// </summary>
-    /// <returns>A new snapshot</returns>
-    public T? TakeSnapshot()
-    {
-        if (IsEmpty()) return default;
-
-        return TakeSnapshotCore();
-    }
-    
-    /// <summary>
-    /// Tries to take a snapshot of the current tracked statistical descriptors
-    /// </summary>
-    /// <param name="snapshot">Snapshot of the current tracked statistical descriptors</param>
-    /// <returns>True if a snapshot was taken, false otherwise</returns>
-    public bool TryTakeSnapshot([NotNullWhen(true)] out T? snapshot)
-    {
-        snapshot = default;
-        
-        if (IsEmpty()) return false;
-
-        snapshot = TakeSnapshotCore();
-
-        return snapshot is not null;
-    }
-    
     /// <summary>
     /// Combines the current tracked sample with another tracked sample and returns a new instance
     /// </summary>
