@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using System.Text.Json.Serialization;
 using DeltaSight.Statistics.Abstractions;
 
@@ -10,11 +11,11 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
 
     [JsonInclude]
     [JsonPropertyName("N")]
-    public long Count { get; private set; }
+    public long Count { get; protected set; }
 
     [JsonInclude]
     [JsonPropertyName("N0")]
-    public long CountZero { get; private set; }
+    public long CountZero { get; protected set; }
 
     #endregion
     
@@ -52,10 +53,10 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     #region Abstract members
 
     public abstract StatisticsTracker<T> Copy();
-    protected abstract StatisticsTracker<T> CombineCore(StatisticsTracker<T> other);
     protected abstract StatisticsTracker<T> MultiplyCore(double multiplier);
     protected abstract void RemoveCore(double value, long count);
     protected abstract void AddCore(double value, long count);
+    protected abstract void AddCore(StatisticsTracker<T> other);
     protected abstract void ClearCore();
     /// <summary>
     /// Creates a snapshot of the statistical descriptors based on the current tracker state
@@ -68,15 +69,26 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
 
     #region Public members
 
+    public void Add(StatisticsTracker<T>? other)
+    {
+        if (other is null) return;
+        
+        AddCore(other);
+    }
+
     /// <summary>
     /// Combines the current tracked sample with another tracked sample and returns a new instance
     /// </summary>
     /// <param name="other">Other tracked sample</param>
     public StatisticsTracker<T> Combine(StatisticsTracker<T>? other)
     {
-        if (other is null) return Copy();
+        var combined = Copy();
 
-        return CombineCore(other);
+        if (other is null) return combined;
+
+        combined.AddCore(other);
+
+        return combined;
     }
 
     /// <summary>

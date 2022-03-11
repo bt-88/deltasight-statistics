@@ -154,16 +154,13 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
                && ast._simple!.Equals(_simple);
     }
     
-    protected override AdvancedStatisticsTracker CombineCore(StatisticsTracker<AdvancedStatistics> other)
+    protected override void AddCore(StatisticsTracker<AdvancedStatistics> other)
     {
         if (other is not AdvancedStatisticsTracker ast) throw new InvalidOperationException();
-        
-        var tracker = new AdvancedStatisticsTracker();
-        
-        tracker.Add(_frequencies);
-        tracker.Add(ast._frequencies);
 
-        return tracker;
+        if (other.Count == 0) return;
+        
+        Add(ast.Frequencies);
     }
 
     protected override void ClearCore()

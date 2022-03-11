@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using DeltaSight.Statistics.Abstractions;
 
 namespace DeltaSight.Statistics;
 
@@ -146,21 +145,21 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         Sum = newSum;
     }
     
-    protected override SimpleStatisticsTracker CombineCore(StatisticsTracker<SimpleStatistics> other)
+    protected override void AddCore(StatisticsTracker<SimpleStatistics> other)
     {
         if (other is not SimpleStatisticsTracker sst) throw new InvalidOperationException();
         
-        var n = Count + other.Count;
+        if (other.Count == 0L) return;
 
-        if (n == 0L) return new SimpleStatisticsTracker(); 
-        if (Count == 0L) return new SimpleStatisticsTracker(sst);
-        if (other.Count == 0L) return new SimpleStatisticsTracker(this);
-        
+        var n = Count + other.Count;
         var d = Sum / Count - sst.Sum / sst.Count;
         var d2 = d * d;
         var sse = SumSquaredError + sst.SumSquaredError + d2 * Count * sst.Count / n;
 
-        return new SimpleStatisticsTracker(n, CountZero + other.CountZero, Sum + sst.Sum, sse);
+        Count += sst.Count;
+        CountZero += sst.CountZero;
+        Sum += sst.Sum;
+        SumSquaredError = sse;
     }
 
     public override SimpleStatisticsTracker Copy() => new (this);
