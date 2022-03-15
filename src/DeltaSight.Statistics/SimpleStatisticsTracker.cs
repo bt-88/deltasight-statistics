@@ -10,11 +10,11 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
 {
 
     #region Constructors
-
+    
     /// <summary>
-    /// Creates an empty tracker
+    /// Creates an empty tracker for the 'simple' statistics of a running value sample
     /// </summary>
-    public SimpleStatisticsTracker() : base(0L, 0L)
+    public SimpleStatisticsTracker()
     {
     }
 
@@ -26,7 +26,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     }
 
     [JsonConstructor]
-    private SimpleStatisticsTracker(long n, long n0, double sum, double sse) : base(n, n0)
+    private SimpleStatisticsTracker(long n, double nm, long n0, double sum, double sse) : base(n, nm, n0)
     {
         Sum = sum;
         SumSquaredError = sse;
@@ -88,6 +88,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         {
             CountZero = CountZero,
             Count = Count,
+            CountMultiplied = CountMultiplied,
             Mean = mean,
             Variance = variance,
             PopulationVariance = popVariance,
@@ -122,7 +123,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     {
         var newCount = Count - count;
         
-        switch (Count - count)
+        switch (newCount)
         {
             case < 0L:
                 return;
@@ -158,6 +159,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
 
         Count += sst.Count;
         CountZero += sst.CountZero;
+        CountMultiplied += sst.CountMultiplied;
         Sum += sst.Sum;
         SumSquaredError = sse;
     }
@@ -166,9 +168,9 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
 
     protected override SimpleStatisticsTracker MultiplyCore(double multiplier)
     {
-        if (Count == 0L) return new SimpleStatisticsTracker();
-
-        return new SimpleStatisticsTracker(Count, CountZero, Sum * multiplier, SumSquaredError * multiplier * multiplier);
+        return Count == 0L
+            ? new SimpleStatisticsTracker()
+            : new SimpleStatisticsTracker(Count, CountMultiplied * multiplier, CountZero, Sum * multiplier, SumSquaredError * multiplier * multiplier);
     }
 
     protected override bool EqualsCore(StatisticsTracker<SimpleStatistics> other)

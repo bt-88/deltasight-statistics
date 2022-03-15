@@ -68,7 +68,10 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
     
     #region Constructors
 
-    public AdvancedStatisticsTracker() : base(0L, 0L)
+    /// <summary>
+    /// Creates an empty tracker for the 'advanced' statistics of a running value sample
+    /// </summary>
+    public AdvancedStatisticsTracker()
     {
     }
 

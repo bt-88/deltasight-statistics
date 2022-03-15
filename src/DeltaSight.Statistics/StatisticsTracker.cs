@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using System.Text.Json.Serialization;
 using DeltaSight.Statistics.Abstractions;
 
@@ -17,18 +16,28 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     [JsonPropertyName("N0")]
     public long CountZero { get; protected set; }
 
+    [JsonInclude]
+    [JsonPropertyName("NM")]
+    public double CountMultiplied { get; protected set; }
+
     #endregion
     
     #region Constructors
 
-    protected StatisticsTracker(StatisticsTracker<T> tracker) : this(tracker.Count, tracker.CountZero)
+    protected StatisticsTracker(StatisticsTracker<T> tracker) : this(tracker.Count, tracker.CountMultiplied, tracker.CountZero)
     {
     }
 
-    protected StatisticsTracker(long count, long countZero)
+    protected StatisticsTracker() : this(0L, 0d, 0L)
+    {
+        
+    }
+
+    protected StatisticsTracker(long count, double countMultiplied, long countZero)
     {
         Count = count;
         CountZero = countZero;
+        CountMultiplied = countMultiplied;
     }
 
     /// <summary>
@@ -171,6 +180,7 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
             AddCore(value, count);
             
             Count += count;
+            CountMultiplied += count;
 
             if (value != 0d) return;
 
