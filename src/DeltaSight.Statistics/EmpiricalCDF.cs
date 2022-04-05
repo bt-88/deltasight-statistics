@@ -108,10 +108,6 @@ public class EmpiricalCDF<T> : IEmpiricalCDF<T>
                 return Create(sorted, false);
             }
         }
-        
-        return Create(unsortedDensities.ToImmutableSortedDictionary(
-            x => x.Key, 
-            x => x.Value), false);
     }
     
     /// <summary>

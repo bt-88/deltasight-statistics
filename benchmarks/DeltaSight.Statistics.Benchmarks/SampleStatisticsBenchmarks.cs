@@ -11,7 +11,7 @@ public class SampleStatisticsBenchmarks
     [BenchmarkCategory("Compute")]
     public double Compute_Variance_TrackSimpleStatistics()
     {
-        return _values.TrackSimpleStatistics().TakeSnapshot()!.Variance;
+        return _values.TrackSimpleStatistics().TakeSnapshot().Variance;
     }
 
     [Benchmark]

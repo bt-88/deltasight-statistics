@@ -76,7 +76,13 @@ public class SimpleStatisticsTrackerTests
     [Fact]
     public void TakeSnapshot_FromEmpty()
     {
-        AdvancedStatisticsTracker.From().TakeSnapshot().ShouldBe(AdvancedStatistics.Empty);
+        var snapshot = AdvancedStatisticsTracker.From().TakeSnapshot();
+            
+        snapshot.ShouldBe(AdvancedStatistics.Empty);
+        
+        snapshot.Variance.ShouldBe(0d);
+        snapshot.PopulationVariance.ShouldBe(0d);
+        snapshot.Mean.ShouldBe(double.NaN);
     }
     
     [Fact]
@@ -145,6 +151,18 @@ public class SimpleStatisticsTrackerTests
         stats2.PopulationVariance.ShouldBe(0.16, 1e-2);
     }
 
+    [Fact]
+    public void Combine_WithZeroVariance()
+    {
+        var combined = SimpleStatisticsTracker
+            .From(1)
+            .Combine(SimpleStatisticsTracker.From(1));
+
+        var snapshot = combined.TakeSnapshot();
+        
+        snapshot.Variance.ShouldBe(0d);
+    }
+    
     [Fact]
     public void Combine()
     {
@@ -223,14 +241,14 @@ public class SimpleStatisticsTrackerTests
     public void Serialize()
     {
         JsonSerializer.Serialize(SimpleStatisticsTracker.From(0, 1, 2, 3))
-            .ShouldBe("{\"Sum\":6,\"SSE\":5,\"N\":4,\"N0\":1}");
+            .ShouldBe("{\"Sum\":6,\"SSE\":5,\"N\":4,\"N0\":1,\"NM\":4}");
     }
     
     [Fact]
     public void Serialize_Empty()
     {
         JsonSerializer.Serialize(new SimpleStatisticsTracker())
-            .ShouldBe("{\"Sum\":0,\"SSE\":0,\"N\":0,\"N0\":0}");
+            .ShouldBe("{\"Sum\":0,\"SSE\":0,\"N\":0,\"N0\":0,\"NM\":0}");
     }
 
     [Fact]
@@ -242,7 +260,7 @@ public class SimpleStatisticsTrackerTests
         tracker.IsEmpty().ShouldBeTrue();
         tracker.TakeSnapshot().ShouldBe(SimpleStatistics.Empty);
         
-        JsonSerializer.Serialize(tracker).ShouldBe("{\"Sum\":0,\"SSE\":0,\"N\":0,\"N0\":0}");
+        JsonSerializer.Serialize(tracker).ShouldBe("{\"Sum\":0,\"SSE\":0,\"N\":0,\"N0\":0,\"NM\":0}");
     }
     
     [Fact]

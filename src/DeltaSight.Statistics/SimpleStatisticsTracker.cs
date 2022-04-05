@@ -74,7 +74,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         if (IsEmpty()) return SimpleStatistics.Empty;
 
         var variance = Count > 1L ? SumSquaredError / (Count - 1L) : 0d;
-        var popVariance = SumSquaredError / Count;
+        var popVariance = Count > 0L ? SumSquaredError / Count : 0d;
         
         var stDev = Math.Sqrt(variance);
         var popStDev = Math.Sqrt(popVariance);

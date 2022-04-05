@@ -4,7 +4,7 @@ namespace DeltaSight.Statistics;
 
 public record SimpleStatistics : IStatisticsSnapshot
 {
-    public static SimpleStatistics Empty = new();
+    public static readonly SimpleStatistics Empty = new();
     
     /// <summary>Value count</summary>
     public long Count { get; init; }
