@@ -284,6 +284,52 @@ public class SimpleStatisticsTrackerTests
     }
 
     [Fact]
+    public void Add()
+    {
+        var tracker = SimpleStatisticsTracker.From(1d, 1d, 1d);
+
+        tracker.Add(2d);
+        
+        tracker.Count.ShouldBe(4L);
+        tracker.Sum.ShouldBe(5d);
+    }
+    
+    [Fact]
+    public void Add_WithAnotherTracker()
+    {
+        var tracker = SimpleStatisticsTracker.From(1d, 1d, 1d);
+
+        tracker.Add(SimpleStatisticsTracker.From(2d, 2d, 2d));
+        
+        tracker.SumSquaredError.ShouldNotBe(double.NaN);
+    }
+    
+    [Fact]
+    public void Add_WithEmptyTracker()
+    {
+        var tracker = new SimpleStatisticsTracker();
+
+        tracker.Add(SimpleStatisticsTracker.From(2d, 2d, 2d));
+        
+        tracker.SumSquaredError.ShouldNotBe(double.NaN);
+    }
+    
+    [Fact]
+    public void Add_WithEmptyTrackerAndVariance()
+    {
+        var tracker = new SimpleStatisticsTracker();
+        var tracker2 = SimpleStatisticsTracker.From(1d, 2d, 4d);
+        
+        tracker.Add(tracker2);
+        
+        tracker.SumSquaredError.ShouldBe(tracker2.SumSquaredError);
+        tracker.Sum.ShouldBe(tracker2.Sum);
+        tracker.Count.ShouldBe(tracker2.Count);
+        
+        tracker.SumSquaredError.ShouldNotBe(double.NaN);
+    }
+
+    [Fact]
     public void Multiply()
     {
         var tracker = SimpleStatisticsTracker.From(2, 4, 6).Multiply(3);

@@ -153,9 +153,14 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         if (other.Count == 0L) return;
 
         var n = Count + other.Count;
-        var d = Sum / Count - sst.Sum / sst.Count;
-        var d2 = d * d;
-        var sse = SumSquaredError + sst.SumSquaredError + d2 * Count * sst.Count / n;
+        var sse = SumSquaredError + sst.SumSquaredError;
+
+        if (Count > 0L)
+        {
+            var d = Sum / Count - sst.Sum / sst.Count;
+            
+            sse += d * d * Count * sst.Count / n;
+        }
 
         Count += sst.Count;
         CountZero += sst.CountZero;
