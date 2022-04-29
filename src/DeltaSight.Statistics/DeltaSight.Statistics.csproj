@@ -16,7 +16,7 @@
         <RepositoryUrl>https://github.com/bt-88/deltasight-statistics</RepositoryUrl>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>3.0.0-beta20220412</PackageVersion>
+        <PackageVersion>3.0.0-beta20220429</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>

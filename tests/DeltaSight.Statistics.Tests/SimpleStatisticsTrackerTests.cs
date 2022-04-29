@@ -342,7 +342,6 @@ public class SimpleStatisticsTrackerTests
         stats.Sum.ShouldBe(36d, 1e-2);
         stats.Mean.ShouldBe(12d, 1e-2);
         stats.Count.ShouldBe(3L);
-        stats.CountMultiplied.ShouldBe(9d);
         stats.CountZero.ShouldBe(0L);
         stats.Variance.ShouldBe(36d, 1e-2); // 4 * 3^2
         stats.PopulationVariance.ShouldBe(24d, 1e-2);

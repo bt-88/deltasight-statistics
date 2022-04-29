@@ -10,12 +10,6 @@ public record SimpleStatistics : IStatisticsSnapshot
     public long Count { get; init; }
     
     /// <summary>
-    /// Value count corrected for any multipliers
-    /// <remarks>If the statistics come from a non-multiplied sample, this should equal <see cref="Count"/>, otherwise this equals some multiplier * <see cref="Count"/></remarks>
-    /// </summary>
-    public double CountMultiplied { get; init; }
-    
-    /// <summary>
     /// Number of values equal to zero
     /// </summary>
     public long CountZero { get; init; }

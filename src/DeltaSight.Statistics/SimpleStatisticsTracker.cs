@@ -88,7 +88,6 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         {
             CountZero = CountZero,
             Count = Count,
-            CountMultiplied = CountMultiplied,
             Mean = mean,
             Variance = variance,
             PopulationVariance = popVariance,
