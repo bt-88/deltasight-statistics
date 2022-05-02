@@ -138,18 +138,6 @@ public class AdvancedStatisticsTrackerTests
         snap1.Equals(snap2).ShouldBeTrue();
         ReferenceEquals(snap1, snap2).ShouldBeFalse();
     }
-    
-    [Fact]
-    public void Multiply()
-    {
-        var tracker = AdvancedStatisticsTracker.From(2, 4, 6).Multiply(3) as AdvancedStatisticsTracker;
-
-        tracker.ShouldNotBeNull();
-        tracker.IsEmpty().ShouldBeFalse();
-        tracker.GreatestCommonDivisor.ShouldBe(6L);
-        tracker.IntegerMultiplier.ShouldBe(1L);
-
-    }
 
     [Fact]
     public void TakeSnapshot_ProbabilitiesShouldSumTo1()

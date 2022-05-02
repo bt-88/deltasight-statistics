@@ -133,21 +133,6 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
         };
     }
 
-    protected override AdvancedStatisticsTracker MultiplyCore(double multiplier)
-    {
-        if (_frequencies is null) return new AdvancedStatisticsTracker();
-
-        var tracker = new AdvancedStatisticsTracker();
-
-        foreach (var (key, count) in _frequencies)
-        {
-            tracker.Add(key * multiplier, count);
-        }
-
-        return tracker;
-    }
-
-        
     protected override bool EqualsCore(StatisticsTracker<AdvancedStatistics> other)
     {
         if (other is not AdvancedStatisticsTracker ast) return false;

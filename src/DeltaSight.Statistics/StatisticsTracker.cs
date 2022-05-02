@@ -10,34 +10,33 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
 
     [JsonInclude]
     [JsonPropertyName("N")]
-    public long Count { get; protected set; }
+    public long Count { get; private set; }
 
     [JsonInclude]
     [JsonPropertyName("N0")]
-    public long CountZero { get; protected set; }
-
+    public long CountZero { get; private set; }
+    
     [JsonInclude]
-    [JsonPropertyName("NM")]
-    public double CountMultiplied { get; protected set; }
-
+    public double Sum { get; private set; }
+    
     #endregion
     
     #region Constructors
 
-    protected StatisticsTracker(StatisticsTracker<T> tracker) : this(tracker.Count, tracker.CountMultiplied, tracker.CountZero)
+    protected StatisticsTracker(StatisticsTracker<T> tracker) : this(tracker.Count, tracker.CountZero, tracker.Sum)
     {
     }
 
-    protected StatisticsTracker() : this(0L, 0d, 0L)
+    protected StatisticsTracker() : this(0L, 0L, 0d)
     {
         
     }
-
-    protected StatisticsTracker(long count, double countMultiplied, long countZero)
+    
+    protected StatisticsTracker(long count, long countZero, double sum)
     {
         Count = count;
         CountZero = countZero;
-        CountMultiplied = countMultiplied;
+        Sum = sum;
     }
 
     /// <summary>
@@ -58,11 +57,21 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     }
     
     #endregion
+    
+    #region Protected members
+    
+    protected void AddInner(StatisticsTracker<T> tracker)
+    {
+        Count += tracker.Count;
+        CountZero += tracker.CountZero;
+        Sum += tracker.Sum;
+    }
+    
+    #endregion
 
     #region Abstract members
 
     public abstract StatisticsTracker<T> Copy();
-    protected abstract StatisticsTracker<T> MultiplyCore(double multiplier);
     protected abstract void RemoveCore(double value, long count);
     protected abstract void AddCore(double value, long count);
     protected abstract void AddCore(StatisticsTracker<T> other);
@@ -101,19 +110,6 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     }
 
     /// <summary>
-    /// Multiplies all values in the sample by a constant and returns a new instance
-    /// </summary>
-    /// <param name="multiplier">Multiplier</param>
-    /// <exception cref="StatisticsTrackerException"></exception>
-    public StatisticsTracker<T> Multiply(double multiplier)
-    {
-        if (multiplier == 0d)
-            throw new StatisticsTrackerException($"An error occured while attempting {nameof(Multiply)}", new ArgumentOutOfRangeException(nameof(multiplier), $"{nameof(multiplier)} cannot be zero"));
-
-        return MultiplyCore(multiplier);
-    }
-
-    /// <summary>
     /// Empties the tracker
     /// </summary>
     public void Clear()
@@ -146,15 +142,20 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
             
             RemoveCore(value, count);
 
-            Count -= count;
+            if (value == 0d)
+            {
+                if (count > CountZero)
+                    throw new ArgumentOutOfRangeException(nameof(count),
+                        $"{nameof(count)} ({count}) is greater than the existing {nameof(CountZero)} ({CountZero})");
 
-            if (value != 0d) return;
+                CountZero -= count;
+            }
+            else
+            {
+                Sum -= count * value;
+            }
             
-            if (count > CountZero)
-                throw new ArgumentOutOfRangeException(nameof(count),
-                    $"{nameof(count)} ({count}) is greater than the existing {nameof(CountZero)} ({CountZero})");
-                
-            CountZero -= count;
+            Count -= count;
         }
         catch (Exception e)
         {
@@ -180,11 +181,15 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
             AddCore(value, count);
             
             Count += count;
-            CountMultiplied += count;
 
-            if (value != 0d) return;
-
-            CountZero += count;
+            if (value == 0d)
+            {
+                CountZero += count;
+            }
+            else
+            {
+                Sum += value * count;
+            }
         }
         catch (Exception e)
         {

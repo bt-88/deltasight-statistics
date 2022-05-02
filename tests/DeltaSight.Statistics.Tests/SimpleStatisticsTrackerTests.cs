@@ -241,14 +241,14 @@ public class SimpleStatisticsTrackerTests
     public void Serialize()
     {
         JsonSerializer.Serialize(SimpleStatisticsTracker.From(0, 1, 2, 3))
-            .ShouldBe("{\"Sum\":6,\"SSE\":5,\"N\":4,\"N0\":1,\"NM\":4}");
+            .ShouldBe("{\"SSE\":5,\"N\":4,\"N0\":1,\"Sum\":6}");
     }
     
     [Fact]
     public void Serialize_Empty()
     {
         JsonSerializer.Serialize(new SimpleStatisticsTracker())
-            .ShouldBe("{\"Sum\":0,\"SSE\":0,\"N\":0,\"N0\":0,\"NM\":0}");
+            .ShouldBe("{\"SSE\":0,\"N\":0,\"N0\":0,\"Sum\":0}");
     }
 
     [Fact]
@@ -260,7 +260,7 @@ public class SimpleStatisticsTrackerTests
         tracker.IsEmpty().ShouldBeTrue();
         tracker.TakeSnapshot().ShouldBe(SimpleStatistics.Empty);
         
-        JsonSerializer.Serialize(tracker).ShouldBe("{\"Sum\":0,\"SSE\":0,\"N\":0,\"N0\":0,\"NM\":0}");
+        JsonSerializer.Serialize(tracker).ShouldBe("{\"SSE\":0,\"N\":0,\"N0\":0,\"Sum\":0}");
     }
     
     [Fact]
@@ -327,25 +327,5 @@ public class SimpleStatisticsTrackerTests
         tracker.Count.ShouldBe(tracker2.Count);
         
         tracker.SumSquaredError.ShouldNotBe(double.NaN);
-    }
-
-    [Fact]
-    public void Multiply()
-    {
-        var tracker = SimpleStatisticsTracker.From(2, 4, 6).Multiply(3);
-        
-        tracker.IsEmpty().ShouldBeFalse();
-
-        var stats = tracker.TakeSnapshot();
-
-        stats.ShouldNotBeNull();
-        stats.Sum.ShouldBe(36d, 1e-2);
-        stats.Mean.ShouldBe(12d, 1e-2);
-        stats.Count.ShouldBe(3L);
-        stats.CountZero.ShouldBe(0L);
-        stats.Variance.ShouldBe(36d, 1e-2); // 4 * 3^2
-        stats.PopulationVariance.ShouldBe(24d, 1e-2);
-        stats.StandardDeviation.ShouldBe(6d, 1e-2);
-        stats.PopulationStandardDeviation.ShouldBe(4.90, 1e-2);
     }
 }

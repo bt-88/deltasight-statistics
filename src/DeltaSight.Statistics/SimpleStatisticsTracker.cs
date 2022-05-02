@@ -26,9 +26,8 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     }
 
     [JsonConstructor]
-    private SimpleStatisticsTracker(long n, double nm, long n0, double sum, double sse) : base(n, nm, n0)
+    private SimpleStatisticsTracker(long n, long n0, double sum, double sse) : base(n, n0, sum)
     {
-        Sum = sum;
         SumSquaredError = sse;
     }
     
@@ -38,19 +37,12 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     /// <param name="other">An other accumulator</param>
     public SimpleStatisticsTracker(SimpleStatisticsTracker other) : base(other)
     {
-        Sum = other.Sum;
         SumSquaredError = other.SumSquaredError;
     }
 
     #endregion
 
     #region Properties
-    
-    /// <summary>
-    /// Sum of the values in the sample
-    /// </summary>
-    [JsonInclude]
-    public double Sum { get; private set; }
 
     /// <summary>
     /// Sum of Squared Errors (SSE)
@@ -65,7 +57,6 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     
     protected override void ClearCore()
     {
-        Sum = 0d;
         SumSquaredError = 0d;
     }
     
@@ -104,7 +95,6 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
     {
         if (Count == 0L)
         {
-            Sum = count * value;
             return;
         }
 
@@ -115,7 +105,6 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         var newSse = SumSquaredError + (value - curMean) * (value - newMean) * count;
 
         SumSquaredError = newSse;
-        Sum = newSum;
     }
     
     protected override void RemoveCore(double value, long count)
@@ -126,12 +115,7 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         {
             case < 0L:
                 return;
-            case 1L:
-                Sum = count * value;
-                SumSquaredError = 0d;
-                return;
-            case 0L:
-                Sum = 0d;
+            case <= 1L:
                 SumSquaredError = 0d;
                 return;
         }
@@ -142,7 +126,6 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
         var newSse = SumSquaredError - (value - curMean) * (value - newMean) * count;
 
         SumSquaredError = newSse;
-        Sum = newSum;
     }
     
     protected override void AddCore(StatisticsTracker<SimpleStatistics> other)
@@ -160,23 +143,14 @@ public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
             
             sse += d * d * Count * sst.Count / n;
         }
-
-        Count += sst.Count;
-        CountZero += sst.CountZero;
-        CountMultiplied += sst.CountMultiplied;
-        Sum += sst.Sum;
+        
+        AddInner(sst);
+        
         SumSquaredError = sse;
     }
 
     public override SimpleStatisticsTracker Copy() => new (this);
-
-    protected override SimpleStatisticsTracker MultiplyCore(double multiplier)
-    {
-        return Count == 0L
-            ? new SimpleStatisticsTracker()
-            : new SimpleStatisticsTracker(Count, CountMultiplied * multiplier, CountZero, Sum * multiplier, SumSquaredError * multiplier * multiplier);
-    }
-
+    
     protected override bool EqualsCore(StatisticsTracker<SimpleStatistics> other)
     {
         if (other is not SimpleStatisticsTracker st) return false;
