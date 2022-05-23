@@ -16,10 +16,10 @@ public static class SampleStatisticsExtensions
     /// Creates a tracker for advanced statistical descriptors from an <see cref="IEnumerable{T}"/> <paramref name="source"/>
     /// </summary>
     /// <param name="source">Value source</param>
-    /// <returns>A new <see cref="AdvancedStatisticsTracker"/></returns>
-    public static AdvancedStatisticsTracker TrackAdvancedStatistics(this IEnumerable<double> source)
+    /// <returns>A new <see cref="AdvancedStatisticsTrackerWithRemove"/></returns>
+    public static AdvancedStatisticsTrackerWithRemove TrackAdvancedStatistics(this IEnumerable<double> source)
     {
         
-        return new AdvancedStatisticsTracker(source);
+        return new AdvancedStatisticsTrackerWithRemove(source);
     }
 }

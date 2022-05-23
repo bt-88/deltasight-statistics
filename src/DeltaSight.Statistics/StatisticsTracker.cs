@@ -10,14 +10,14 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
 
     [JsonInclude]
     [JsonPropertyName("N")]
-    public long Count { get; private set; }
+    public long Count { get; protected set; }
 
     [JsonInclude]
     [JsonPropertyName("N0")]
-    public long CountZero { get; private set; }
+    public long CountZero { get; protected set; }
     
     [JsonInclude]
-    public double Sum { get; private set; }
+    public double Sum { get; protected set; }
     
     #endregion
     
@@ -72,7 +72,7 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
     #region Abstract members
 
     public abstract StatisticsTracker<T> Copy();
-    protected abstract void RemoveCore(double value, long count);
+    //protected abstract void RemoveCore(double value, long count);
     protected abstract void AddCore(double value, long count);
     protected abstract void AddCore(StatisticsTracker<T> other);
     protected abstract void ClearCore();
@@ -118,55 +118,6 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
         CountZero = 0L;
         
         ClearCore();
-    }
-    
-    /// <summary>
-    /// Removes a <paramref name="value"/> from the sample, one or more times 
-    /// </summary>
-    /// <param name="value">The value to be removed from the population</param>
-    /// <param name="count">The number of observations of that value to be removed</param>
-    /// <exception cref="StatisticsTrackerException"></exception>
-    public void Remove(double value, long count = 1L)
-    {
-        try
-        {
-            if (count > Count)
-                throw new ArgumentOutOfRangeException(nameof(count),
-                    $"{nameof(count)} ({count}) is greater than the existing {nameof(Count)} ({Count})");
-
-            if (count == Count)
-            {
-                Clear();
-                return;
-            }
-            
-            RemoveCore(value, count);
-
-            if (value == 0d)
-            {
-                if (count > CountZero)
-                    throw new ArgumentOutOfRangeException(nameof(count),
-                        $"{nameof(count)} ({count}) is greater than the existing {nameof(CountZero)} ({CountZero})");
-
-                CountZero -= count;
-            }
-            else
-            {
-                Sum -= count * value;
-            }
-            
-            Count -= count;
-        }
-        catch (Exception e)
-        {
-            throw new StatisticsTrackerException(
-                $"An error occured while attempting to perform {nameof(Remove)} for value '{value}' with count '{count}'", e);
-        }
-    }
-
-    public void Remove(IEnumerable<double> values)
-    {
-        foreach (var value in values) Remove(value);
     }
 
     /// <summary>
@@ -242,4 +193,79 @@ public abstract class StatisticsTracker<T> : IStatisticsTracker<T>
 
         return EqualsCore(st);
     }
+}
+
+public abstract class StatisticsTrackerWithRemove<T> : StatisticsTracker<T>, IStatisticsTrackerWithRemove<T>
+    where T : IStatisticsSnapshot
+{
+    protected StatisticsTrackerWithRemove(long count, long countZero, double sum) : base(count, countZero, sum)
+    {
+    }
+
+    protected StatisticsTrackerWithRemove(IEnumerable<double> values) : base(values)
+    {
+    }
+
+    protected StatisticsTrackerWithRemove(IEnumerable<KeyValuePair<double, long>> valueCounts) : base(valueCounts)
+    {
+    }
+
+    protected StatisticsTrackerWithRemove()
+    {
+    }
+
+    protected StatisticsTrackerWithRemove(StatisticsTracker<T> tracker) : base(tracker)
+    {
+    }
+
+    /// <summary>
+    /// Removes a <paramref name="value"/> from the sample, one or more times 
+    /// </summary>
+    /// <param name="value">The value to be removed from the population</param>
+    /// <param name="count">The number of observations of that value to be removed</param>
+    /// <exception cref="StatisticsTrackerException"></exception>
+    public void Remove(double value, long count = 1L)
+    {
+        try
+        {
+            if (count > Count)
+                throw new ArgumentOutOfRangeException(nameof(count),
+                    $"{nameof(count)} ({count}) is greater than the existing {nameof(Count)} ({Count})");
+
+            if (count == Count)
+            {
+                Clear();
+                return;
+            }
+            
+            RemoveCore(value, count);
+
+            if (value == 0d)
+            {
+                if (count > CountZero)
+                    throw new ArgumentOutOfRangeException(nameof(count),
+                        $"{nameof(count)} ({count}) is greater than the existing {nameof(CountZero)} ({CountZero})");
+
+                CountZero -= count;
+            }
+            else
+            {
+                Sum -= count * value;
+            }
+            
+            Count -= count;
+        }
+        catch (Exception e)
+        {
+            throw new StatisticsTrackerException(
+                $"An error occured while attempting to perform {nameof(Remove)} for value '{value}' with count '{count}'", e);
+        }
+    }
+
+    public void Remove(IEnumerable<double> values)
+    {
+        foreach (var value in values) Remove(value);
+    }
+
+    protected abstract void RemoveCore(double value, long count);
 }

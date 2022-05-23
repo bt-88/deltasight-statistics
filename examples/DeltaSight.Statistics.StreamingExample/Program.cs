@@ -54,7 +54,7 @@ static bool IsOperationValid(string? operation)
     return operation is not null && new[] {"a", "r"}.Contains(operation.ToLower());
 }
 
-static void ApplyOperation(IStatisticsTracker<IStatisticsSnapshot> stats, string? operation, IEnumerable<double> values)
+static void ApplyOperation(IStatisticsTrackerWithRemove<IStatisticsSnapshot> stats, string? operation, IEnumerable<double> values)
 {
     switch (operation?.ToLower())
     {
@@ -69,11 +69,11 @@ static void ApplyOperation(IStatisticsTracker<IStatisticsSnapshot> stats, string
     }
 }
 
-static IStatisticsTracker<IStatisticsSnapshot> ProvideTracker(string? operation)
+static IStatisticsTrackerWithRemove<IStatisticsSnapshot> ProvideTracker(string? operation)
 {
     return operation?.ToLower() switch
     {
-        "a" => new AdvancedStatisticsTracker(),
+        "a" => new AdvancedStatisticsTrackerWithRemove(),
         "s" => new SimpleStatisticsTracker(),
         _ => throw new ArgumentOutOfRangeException(nameof(operation))
     };

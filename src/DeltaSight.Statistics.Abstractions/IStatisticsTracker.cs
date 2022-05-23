@@ -7,7 +7,11 @@ public interface IStatisticsTracker<out T> : IReadOnlyStatisticsTracker<T> where
     void Add(IEnumerable<KeyValuePair<double, int>>? hist);
     void Add(IEnumerable<KeyValuePair<double, long>>? hist);
     void Add(IEnumerable<double> values);
+    void Clear();
+}
+
+public interface IStatisticsTrackerWithRemove<out T> : IStatisticsTracker<T> where T : IStatisticsSnapshot
+{
     void Remove(double value, long count = 1L);
     void Remove(IEnumerable<double> values);
-    void Clear();
 }

@@ -76,7 +76,7 @@ public class SimpleStatisticsTrackerTests
     [Fact]
     public void TakeSnapshot_FromEmpty()
     {
-        var snapshot = AdvancedStatisticsTracker.From().TakeSnapshot();
+        var snapshot = AdvancedStatisticsTrackerWithRemove.From().TakeSnapshot();
             
         snapshot.ShouldBe(AdvancedStatistics.Empty);
         

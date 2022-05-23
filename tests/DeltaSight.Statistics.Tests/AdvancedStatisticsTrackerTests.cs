@@ -14,7 +14,7 @@ public class AdvancedStatisticsTrackerTests
     {
         Assert.Throws<StatisticsTrackerException>(() =>
         {
-            var tracker = new AdvancedStatisticsTracker();
+            var tracker = new AdvancedStatisticsTrackerWithRemove();
             
             tracker.Remove(1d);
         });
@@ -26,7 +26,7 @@ public class AdvancedStatisticsTrackerTests
         Assert.Throws<StatisticsTrackerException>(
             () =>
             {
-                var tracker = AdvancedStatisticsTracker.From(10d);
+                var tracker = AdvancedStatisticsTrackerWithRemove.From(10d);
                 
                 tracker.Remove(10d, 2);
             });
@@ -35,7 +35,7 @@ public class AdvancedStatisticsTrackerTests
     [Fact]
     public void Add_WithInfiniteDecimals()
     {
-        var tracker = AdvancedStatisticsTracker.From(Math.PI);
+        var tracker = AdvancedStatisticsTrackerWithRemove.From(Math.PI);
         
         tracker.IntegerMultiplier.ShouldBe(10000); // 10000 is max
     }
@@ -43,7 +43,7 @@ public class AdvancedStatisticsTrackerTests
     [Fact]
     public void AddAndRemove_WithSameQuantity_ShouldBeEmpty()
     {
-        var tracker = new AdvancedStatisticsTracker();
+        var tracker = new AdvancedStatisticsTrackerWithRemove();
         tracker.Add(1d, 10);
         tracker.Remove(1d, 10);
         tracker.IsEmpty().ShouldBeTrue();
@@ -56,13 +56,13 @@ public class AdvancedStatisticsTrackerTests
     [Fact]
     public void Empty_TakeSnapshot_ShouldBeNull()
     {
-        new AdvancedStatisticsTracker().TakeSnapshot().ShouldBe(AdvancedStatistics.Empty);
+        new AdvancedStatisticsTrackerWithRemove().TakeSnapshot().ShouldBe(AdvancedStatistics.Empty);
     }
     
     [Fact]
     public void AddAndRemove_WithCountGreaterThanOne()
     {
-        var tracker = AdvancedStatisticsTracker.From(20d);
+        var tracker = AdvancedStatisticsTrackerWithRemove.From(20d);
         
         tracker.IsEmpty().ShouldBeFalse();
         tracker.GreatestCommonDivisor.ShouldNotBeNull();
@@ -97,7 +97,7 @@ public class AdvancedStatisticsTrackerTests
     [Fact]
     public void AddAndRemove_WithDecimalValues()
     {
-        var tracker = AdvancedStatisticsTracker.From(0.05, 0.2, 2, 20, 400, 8000);
+        var tracker = AdvancedStatisticsTrackerWithRemove.From(0.05, 0.2, 2, 20, 400, 8000);
 
         tracker.GreatestCommonDivisor.ShouldNotBeNull();
         tracker.GreatestCommonDivisor.ShouldBe(5L);
@@ -124,7 +124,7 @@ public class AdvancedStatisticsTrackerTests
         var values = new[] {1d, 2d, 3d, 4d, 10d};
 
         var tracker1 = values.TrackAdvancedStatistics();
-        var tracker2 = new AdvancedStatisticsTracker(values);
+        var tracker2 = new AdvancedStatisticsTrackerWithRemove(values);
         
         tracker1.Equals(tracker2).ShouldBeTrue();
         ReferenceEquals(tracker1, tracker2).ShouldBeFalse();
@@ -142,7 +142,7 @@ public class AdvancedStatisticsTrackerTests
     [Fact]
     public void TakeSnapshot_ProbabilitiesShouldSumTo1()
     {
-        var snapshot = new AdvancedStatisticsTracker(Enumerable.Range(0, 99).Select(x => Random.Shared.NextDouble() * 10d))
+        var snapshot = new AdvancedStatisticsTrackerWithRemove(Enumerable.Range(0, 99).Select(x => Random.Shared.NextDouble() * 10d))
             .TakeSnapshot();
 
         snapshot.ShouldNotBeNull();
@@ -152,10 +152,10 @@ public class AdvancedStatisticsTrackerTests
     [Fact]
     public void SerializeAndSerialize()
     {
-        var tracker = AdvancedStatisticsTracker.From(1, 2, 3);
+        var tracker = AdvancedStatisticsTrackerWithRemove.From(1, 2, 3);
         var json = JsonSerializer.Serialize(tracker);
 
-        var deserTracker = JsonSerializer.Deserialize<AdvancedStatisticsTracker>(json);
+        var deserTracker = JsonSerializer.Deserialize<AdvancedStatisticsTrackerWithRemove>(json);
 
         tracker.Equals(deserTracker).ShouldBeTrue();
 

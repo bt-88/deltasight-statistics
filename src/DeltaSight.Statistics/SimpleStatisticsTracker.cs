@@ -6,7 +6,7 @@ namespace DeltaSight.Statistics;
 /// Tracks statistical descriptors for a sample of values
 /// </summary>
 [Serializable]
-public class SimpleStatisticsTracker : StatisticsTracker<SimpleStatistics>
+public class SimpleStatisticsTracker : StatisticsTrackerWithRemove<SimpleStatistics>
 {
 
     #region Constructors

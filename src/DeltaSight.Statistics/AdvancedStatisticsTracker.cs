@@ -1,15 +1,16 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using DeltaSight.Statistics.Abstractions;
 
 namespace DeltaSight.Statistics;
 
 /// <summary>
-/// Tracks the 'advanced' statistics of a value sample such as the Greatest Common Divisor and a frequency diagram
+/// Tracks the 'advanced' statistics of a value sample such as the Greatest Common Divisor and a frequency diagram with support for removal of values
 /// </summary>
 [Serializable]
-public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
+public class AdvancedStatisticsTrackerWithRemove : StatisticsTrackerWithRemove<AdvancedStatistics>
 {
     #region Private fields
     
@@ -71,17 +72,17 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
     /// <summary>
     /// Creates an empty tracker for the 'advanced' statistics of a running value sample
     /// </summary>
-    public AdvancedStatisticsTracker()
+    public AdvancedStatisticsTrackerWithRemove()
     {
     }
 
-    public static AdvancedStatisticsTracker From(params double[] values) => new(values);
+    public static AdvancedStatisticsTrackerWithRemove From(params double[] values) => new(values);
     
-    public AdvancedStatisticsTracker (IEnumerable<double> values) : base(values)
+    public AdvancedStatisticsTrackerWithRemove (IEnumerable<double> values) : base(values)
     {
     }
     
-    private AdvancedStatisticsTracker(AdvancedStatisticsTracker other) : base(other)
+    private AdvancedStatisticsTrackerWithRemove(AdvancedStatisticsTrackerWithRemove other) : base(other)
     {
         if (other.IsEmpty()) return;
         
@@ -101,9 +102,9 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
     [MemberNotNullWhen(false, nameof(_simple), nameof(_frequencies), nameof(_integerMultipliers))]
     public override bool IsEmpty() => base.IsEmpty();
 
-    public override StatisticsTracker<AdvancedStatistics> Copy()
+    public override StatisticsTrackerWithRemove<AdvancedStatistics> Copy()
     {
-        return new AdvancedStatisticsTracker(this);
+        return new AdvancedStatisticsTrackerWithRemove(this);
     }
 
     public override AdvancedStatistics TakeSnapshot()
@@ -135,7 +136,7 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
 
     protected override bool EqualsCore(StatisticsTracker<AdvancedStatistics> other)
     {
-        if (other is not AdvancedStatisticsTracker ast) return false;
+        if (other is not AdvancedStatisticsTrackerWithRemove ast) return false;
 
         return ast._frequencies.ContentEquals(_frequencies)
                && ast._integerMultipliers.ContentEquals(_integerMultipliers)
@@ -144,7 +145,7 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
     
     protected override void AddCore(StatisticsTracker<AdvancedStatistics> other)
     {
-        if (other is not AdvancedStatisticsTracker ast) throw new InvalidOperationException();
+        if (other is not AdvancedStatisticsTrackerWithRemove ast) throw new InvalidOperationException();
 
         if (other.Count == 0) return;
         
@@ -320,3 +321,233 @@ public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
 
     #endregion
 }
+
+/// <summary>
+/// Tracks the 'advanced' statistics of a value sample such as the Greatest Common Divisor and a frequency diagram
+/// <remarks>Supports only addition of values to a sample. For removal support see <see cref="AdvancedStatisticsTrackerWithRemove"/></remarks>
+/// </summary>
+[Serializable]
+public class AdvancedStatisticsTracker : StatisticsTracker<AdvancedStatistics>
+{
+    #region Private fields
+    
+    private SortedDictionary<double, long>? _frequencies;
+    private SimpleStatisticsTracker? _simple;
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Multiplier that converts all values to integers
+    /// <remarks>It equals <c>10 ^ d</c> where `d` is the maximum of decimal places of any included value</remarks>
+    /// </summary>
+    [JsonPropertyName("Multiplier")]
+    public long IntegerMultiplier { get; private set; } = 1L;
+
+    /// <summary>
+    /// Greatest common divisor (scaled up to an integer number)
+    /// </summary>
+    [JsonInclude]
+    [JsonPropertyName("GCD")]
+    public long? GreatestCommonDivisor { get; private set; }
+
+    /// <summary>
+    /// Frequency diagram for the included values
+    /// </summary>
+    [JsonInclude]
+    public IReadOnlyDictionary<double, long>? Frequencies
+    {
+        get => _frequencies;
+        private set => _frequencies = value is null ? null : new SortedDictionary<double, long>((IDictionary<double, long>) value);
+    }
+
+    [JsonInclude]
+    [JsonHandleAs(typeof(SimpleStatisticsTracker))]
+    public IReadOnlyStatisticsTracker<SimpleStatistics>? Simple
+    {
+        get => _simple;
+        private set => _simple = (SimpleStatisticsTracker?) value;
+    }
+
+    #endregion
+    
+    #region Constructors
+
+    /// <summary>
+    /// Creates an empty tracker for the 'advanced' statistics of a running value sample
+    /// </summary>
+    public AdvancedStatisticsTracker()
+    {
+    }
+
+    public static AdvancedStatisticsTracker From(params double[] values) => new(values);
+    
+    public AdvancedStatisticsTracker (IEnumerable<double> values) : base(values)
+    {
+    }
+    
+    private AdvancedStatisticsTracker(AdvancedStatisticsTracker other) : base(other)
+    {
+        if (other.IsEmpty()) return;
+        
+        _simple = new SimpleStatisticsTracker(other._simple);
+        _frequencies = new SortedDictionary<double, long>(other._frequencies);
+
+        GreatestCommonDivisor = other.GreatestCommonDivisor;
+        IntegerMultiplier = other.IntegerMultiplier;
+    }
+
+    #endregion
+
+    
+    #region Overrides
+
+    [MemberNotNullWhen(false, nameof(_simple), nameof(_frequencies))]
+    public override bool IsEmpty() => base.IsEmpty();
+
+    public override StatisticsTracker<AdvancedStatistics> Copy()
+    {
+        return new AdvancedStatisticsTracker(this);
+    }
+
+    public override AdvancedStatistics TakeSnapshot()
+    {
+        if (_simple is null || _frequencies is null || GreatestCommonDivisor is null)
+            return AdvancedStatistics.Empty;
+
+        var simpleSnap = _simple.TakeSnapshot();
+
+        return new AdvancedStatistics
+        {
+            Maximum = _frequencies.Keys.Last(),
+            Minimum = _frequencies.Keys.First(),
+            Probabilities = _frequencies.ToImmutableDictionary(
+                x => x.Key,
+                x => 1d * x.Value / simpleSnap.Count),
+            GreatestCommonDivisor = 1d * GreatestCommonDivisor.Value / IntegerMultiplier,
+            Count = simpleSnap.Count,
+            CountZero = simpleSnap.CountZero,
+            Mean = simpleSnap.Mean,
+            Sum = simpleSnap.Sum,
+            Variance = simpleSnap.Variance,
+            PopulationVariance = simpleSnap.PopulationVariance,
+            StandardDeviation = simpleSnap.StandardDeviation,
+            PopulationStandardDeviation = simpleSnap.PopulationStandardDeviation,
+            SumSquaredError = simpleSnap.SumSquaredError
+        };
+    }
+
+    protected override bool EqualsCore(StatisticsTracker<AdvancedStatistics> other)
+    {
+        if (other is not AdvancedStatisticsTracker ast) return false;
+
+        return ast._frequencies.ContentEquals(_frequencies)
+               && ast._simple!.Equals(_simple);
+    }
+    
+    protected override void AddCore(StatisticsTracker<AdvancedStatistics> other)
+    {
+        if (other is not AdvancedStatisticsTracker ast) throw new InvalidOperationException();
+
+        if (other.Count == 0) return;
+        
+        Add(ast.Frequencies);
+    }
+
+    protected override void ClearCore()
+    {
+        _simple!.Clear();
+        _frequencies!.Clear();
+        IntegerMultiplier = 1L;
+        GreatestCommonDivisor = null;
+    }
+
+    private static long ComputeIntegerScale(double value) => (long)Math.Pow(10, value.DecimalPlaces(4));
+
+    
+    protected override void AddCore(double value, long count)
+    {
+        _simple ??= new SimpleStatisticsTracker();
+            
+        _simple.Add(value, count);
+
+        _frequencies ??= new SortedDictionary<double, long>();
+        
+        if (!_frequencies.TryAdd(value, count))
+        {
+            _frequencies[value] += count;
+        }
+        else
+        {
+            // New value so update int multiplier
+            if (value != 0d)
+            {
+                var myIntegerScale = ComputeIntegerScale(value);
+
+                if (myIntegerScale > IntegerMultiplier)
+                {
+                    GreatestCommonDivisor *= myIntegerScale / IntegerMultiplier; // Scale up GCD
+                    IntegerMultiplier = myIntegerScale;
+                }
+            }
+            
+            var intValue = (long)Math.Round(value * IntegerMultiplier);
+
+            GreatestCommonDivisor = GreatestCommonDivisor is null ? intValue : intValue.GCD(GreatestCommonDivisor.Value);
+        }
+    }
+    
+    #endregion
+}
+
+public static class StatisticalFunctions
+{
+    /// <summary>
+    /// Computes the greatest common divisor (GCD) of two integers using Euclid's algorithm
+    /// </summary>
+    public static long GCD(this long a, long b)
+    {
+        while (a != 0L && b != 0L)
+        {
+            if (a > b)
+                a %= b;
+            else
+                b %= a;
+        }
+
+        return a == 0L ? b : a;
+    }
+    
+    public static long GCD(params long[] values) => values.Aggregate(GCD);
+
+    /// <summary>
+    /// Gets the number of decimals for a decimal value.
+    /// </summary>
+    /// <param name="n">The decimal number to check.</param>
+    /// <param name="max">The maximum number of decimals to check.</param>
+    /// <returns>The number of decimal places, maximized by <paramref name="max"/>.</returns>
+    public static int DecimalPlaces(this decimal n, int? max = default)
+    {
+        n = Math.Abs(n); //make sure it is positive.
+        n -= (int)n;     //remove the integer part of the number.
+        var places = 0;
+        while (n > 0)
+        {
+            places++;
+
+            if (places == max) break;
+
+            n *= 10;
+            n -= (int)n;
+        }
+
+        return places;
+    }
+
+    public static int DecimalPlaces(this double n, int? max = default)
+    {
+        return ((decimal) n).DecimalPlaces(max);
+    }
+}
+
